@@ -1,0 +1,123 @@
+<div class="modal-overlay" id="authModal">
+    <div class="modal-container">
+        <button class="modal-close" id="modalClose">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <div class="modal-content">
+            <div class="modal-logo">
+                <i class="fab fa-spotify"></i>
+            </div>
+
+            <!-- Sign Up Form -->
+            <div class="auth-form" id="signupForm">
+                <h1 class="modal-heading">Sign up to start listening</h1>
+
+                <form class="auth-form-content">
+                    <div class="form-group" data-field="display_name">
+                        <input
+                            type="text"
+                            placeholder="Display name"
+                            class="form-input"
+                            id="signupName"
+                        />
+                        <div class="error-message">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="error-text"></span>
+                        </div>
+                    </div>
+                    <div class="form-group" data-field="email">
+                        <input
+                            type="email"
+                            placeholder="Email address"
+                            class="form-input"
+                            id="signupEmail"
+                        />
+                        <div class="error-message">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="error-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" data-field="password">
+                        <div class="input-wrap">
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                class="form-input"
+                                id="signupPassword"
+                            />
+                            <span class="toggle-password">
+                                <i class="fa-solid fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="error-message">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="error-text"></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn">
+                        Sign Up
+                    </button>
+                </form>
+
+                <div class="auth-switch">
+                    <span>Already have an account? </span>
+                    <button class="auth-link" id="showLogin">
+                        Log in here
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="auth-form" id="loginForm" style="display: none">
+                <h1 class="modal-heading">Log in to Spotify</h1>
+
+                <form class="auth-form-content">
+                    <div class="form-group" data-field="email">
+                        <input
+                            type="email"
+                            placeholder="Email address"
+                            class="form-input"
+                            id="loginEmail"
+                        />
+                        <div class="error-message">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="error-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" data-field="password">
+                        <div class="input-wrap">
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                class="form-input"
+                                id="loginPassword"
+                            />
+                            <span class="toggle-password">
+                                <i class="fa-solid fa-eye"></i>
+                            </span>
+                        </div>
+                        <div class="error-message">
+                            <i class="fas fa-info-circle"></i>
+                            <span class="error-text"></span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="auth-submit-btn">
+                        Log In
+                    </button>
+                </form>
+
+                <div class="auth-switch">
+                    <span>Don't have an account? </span>
+                    <button class="auth-link" id="showSignup">
+                        Sign up here
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

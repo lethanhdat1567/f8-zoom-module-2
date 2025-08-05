@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Đen - Spotify</title>
+        <!-- Font Awesome CDN -->
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        />
+        <link rel="icon" href="./public/favicon.ico" />
+        <link rel="stylesheet" href="css/reset.css" />
+        <link rel="stylesheet" href="css/variables.css" />
+        <link rel="stylesheet" href="css/components.css" />
+        <link rel="stylesheet" href="css/layout.css" />
+        <link rel="stylesheet" href="css/responsive.css" />
+    </head>
+    <body>
+        <div class="app-container">
+            <!-- Left Sidebar -->
+            <aside class="sidebar"><spotify-sidebar></spotify-sidebar></aside>
+            <!-- Main Content -->
+            <main class="main-content">
+                <!-- Header -->
+                <spotify-header></spotify-header>
+
+                <div class="content-wrapper">
+                    <!-- Today's Biggest Hits Section -->
+                    <spotify-hits></spotify-hits>
+
+                    <!-- Popular Artists Section -->
+                    <spotify-popular-artists></spotify-popular-artists>
+
+                    <!-- Artist Hero Section -->
+                    <spotify-hero-artists></spotify-hero-artists>
+
+                    <!-- Artist Controls -->
+                    <spotify-controls></spotify-controls>
+
+                    <!-- Popular Tracks -->
+                    <spotify-popular-tracks></spotify-popular-tracks>
+                </div>
+            </main>
+
+            <!-- Bottom Player -->
+            <spotify-player style="grid-area: player"></spotify-player>
+        </div>
+
+        <!-- Auth Modal -->
+        <spotify-auth-modal></spotify-auth-modal>
+
+        <script src="main.js" type="module"></script>
+    </body>
+</html>
