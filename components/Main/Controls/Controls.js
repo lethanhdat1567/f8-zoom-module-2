@@ -1,3 +1,5 @@
+import Tooltip from "../../../components/Tooltip/Tooltip.js";
+
 class Controls extends HTMLElement {
     constructor() {
         super();
@@ -8,6 +10,12 @@ class Controls extends HTMLElement {
         const html = await res.text();
 
         this.innerHTML = html;
+
+        new Tooltip(".play-btn-large", {
+            content: "Play",
+            position: "bottom",
+            delay: 500,
+        });
     }
 }
 

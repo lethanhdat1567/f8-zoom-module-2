@@ -1,3 +1,4 @@
+import Tooltip from "../../components/Tooltip/Tooltip.js";
 import httpRequest from "../../utils/httpRequest.js";
 
 class Header extends HTMLElement {
@@ -38,6 +39,16 @@ class Header extends HTMLElement {
                 this.authSection.style.display = "none";
             }
         } catch (error) {}
+
+        // Tooltip
+        new Tooltip(".home-btn", {
+            content: "Home",
+            position: "bottom",
+        });
+        new Tooltip(".user-menu", {
+            content: "Le Thanh Dat",
+            position: "bottom",
+        });
     }
 }
 
