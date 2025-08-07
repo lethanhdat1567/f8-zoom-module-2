@@ -12,38 +12,63 @@ class Tooltip {
                 content: "",
                 position: "bottom",
                 delay: 200,
+                trigger: null,
+                render: null,
             },
             options
         );
-        this.tooltipEle = document.createElement("div");
-        this.tooltipEle.className = "tooltip";
-
-        const tooltipContentEle = document.createElement("p");
-        tooltipContentEle.className = "tooltip-content";
-        tooltipContentEle.textContent = options.content || "";
-
-        this.tooltipEle.appendChild(tooltipContentEle);
-
-        this._hoverTimeout = null;
 
         this._init();
     }
 
     _init() {
-        // Set pos
-        this.targetEle.addEventListener(
-            "mouseover",
-            this._handleMouseOver.bind(this)
-        );
-        this.targetEle.addEventListener(
-            "mouseout",
-            this._handleMouseOut.bind(this)
-        );
+        // State hover
+        this.isCheduled = false;
+        this._hoverTimeout = null;
+
+        this._createTooltip();
+
+        if (this.options.trigger !== "manual") {
+            this.targetEle.addEventListener(
+                "mouseover",
+                this._handleMouseOver.bind(this)
+            );
+            this.targetEle.addEventListener(
+                "mouseout",
+                this._handleMouseOut.bind(this)
+            );
+        }
+    }
+
+    _createTooltip() {
+        this.tooltipEle = document.createElement("div");
+        this.tooltipEle.className = "tooltip";
+
+        if (this.options.render) {
+            if (this.options.content) {
+                const error = new Error("Can't use both content and render");
+                throw error;
+            } else {
+                if (!this.options.render(this)) {
+                    throw new Error("render need to be return");
+                }
+                const renderedEle = this.options.render(this);
+                this.tooltipEle.appendChild(renderedEle);
+            }
+        }
+        // If don't have render and have content
+        else {
+            const tooltipContentEle = document.createElement("p");
+            tooltipContentEle.className = "tooltip-content";
+            tooltipContentEle.textContent = this.options.content || "";
+
+            this.tooltipEle.appendChild(tooltipContentEle);
+        }
     }
 
     // Check and set pos
     _setValidPosition(initialPosition) {
-        let { top, left } = this._setPosition(initialPosition);
+        let { top, left } = this._getPosition(initialPosition);
 
         const tooltipWidth = this.tooltipEle.offsetWidth;
         const tooltipHeight = this.tooltipEle.offsetHeight;
@@ -73,8 +98,8 @@ class Tooltip {
         this.tooltipEle.style.left = `${left}px`;
     }
 
-    // Set pos
-    _setPosition(position) {
+    // get pos
+    _getPosition(position) {
         const space = 8;
 
         const targetRect = this.targetEle.getBoundingClientRect();
@@ -112,6 +137,22 @@ class Tooltip {
                     tooltipRect.height / 2;
                 left = targetRect.right + space;
                 break;
+            case "top-left":
+                top = targetRect.top - tooltipRect.height - space;
+                left = targetRect.left;
+                break;
+            case "top-right":
+                top = targetRect.top - tooltipRect.height - space;
+                left = targetRect.right - tooltipRect.width;
+                break;
+            case "bottom-left":
+                top = targetRect.bottom + space;
+                left = targetRect.left;
+                break;
+            case "bottom-right":
+                top = targetRect.bottom + space;
+                left = targetRect.right - tooltipRect.width;
+                break;
         }
 
         // Bù lại scroll nếu tooltip là absolute (so với document)
@@ -123,6 +164,10 @@ class Tooltip {
 
     // Hover
     _handleMouseOver() {
+        if (this.isCheduled) return;
+
+        this.isCheduled = true;
+
         this._hoverTimeout = setTimeout(() => {
             document.body.appendChild(this.tooltipEle);
 
@@ -130,6 +175,9 @@ class Tooltip {
             this._setValidPosition(position);
 
             this.tooltipEle.classList.add("active");
+
+            this.isCheduled = false;
+            this._hoverTimeout = null;
         }, this.options.delay);
     }
 
@@ -141,6 +189,7 @@ class Tooltip {
 
         if (this.tooltipEle.classList.contains("active")) {
             this.tooltipEle.classList.remove("active");
+            this.isVisible = false;
 
             this.tooltipEle.addEventListener(
                 "transitionend",
@@ -152,6 +201,30 @@ class Tooltip {
                 { once: true }
             );
         }
+
+        this.isCheduled = false;
+    }
+
+    show() {
+        document.body.appendChild(this.tooltipEle);
+
+        const position = this.options.position;
+        this._setValidPosition(position);
+
+        this.tooltipEle.classList.add("active");
+    }
+
+    hide() {
+        this.tooltipEle.addEventListener(
+            "transitionend",
+            () => {
+                if (document.body.contains(this.tooltipEle)) {
+                    document.body.removeChild(this.tooltipEle);
+                    this.tooltipEle.classList.remove("active");
+                }
+            },
+            { once: true }
+        );
     }
 }
 
