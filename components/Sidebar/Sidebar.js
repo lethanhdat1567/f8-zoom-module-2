@@ -11,53 +11,37 @@ class Sidebar extends HTMLElement {
 
         this.innerHTML = html;
 
-        // Tooltip
-        const sortInstance = new Tooltip(".sort-btn", {
+        // Recents tooltip
+        this.sortInstance = new Tooltip(".sort-btn", {
             position: "bottom-right",
             render: this._renderMenuList,
             trigger: "manual",
         });
 
-        // Recents
         const sortBtn = document.querySelector(".sort-btn");
-
-        let isShown = false;
-        sortBtn.onclick = () => {
-            if (isShown) {
-                sortInstance.hide();
-            } else {
-                sortInstance.show();
-            }
-            isShown = !isShown;
-        };
-
-        // Handle sort
         this.sortByValue = "recents";
         this.viewAsValue = "default_list";
+        this._renderLibraryContent(this.viewAsValue);
+        // toggle show tooltip
+        this.isShown = false;
 
-        this.sortEles = document.querySelectorAll(".recent-menu-item");
-        this.viewEles = document.querySelectorAll(".recent-menu-grid-item");
+        document.onclick = (e) => {
+            if (!this.sortInstance.tooltipEle.contains(e.target)) {
+                this.sortInstance.hide();
+                this.isShown = false;
+            }
+        };
 
-        this._renderSortBy();
-        this._renderViewAs();
-
-        this.sortEles.forEach((sortItem) => {
-            const sortValue = sortItem.dataset.value;
-
-            sortItem.onclick = () => {
-                this.sortByValue = sortValue;
-                this._renderSortBy();
-            };
-        });
-
-        this.viewEles.forEach((viewItem) => {
-            const viewValue = viewItem.dataset.value;
-
-            viewItem.onclick = () => {
-                this.viewAsValue = viewValue;
-                this._renderViewAs();
-            };
-        });
+        sortBtn.onclick = (e) => {
+            e.stopPropagation();
+            if (this.isShown) {
+                this.sortInstance.hide();
+            } else {
+                this.sortInstance.show();
+                this._renderAndListenClickEvent();
+            }
+            this.isShown = !this.isShown;
+        };
 
         // Tooltip other
         this.useTooltipContent();
@@ -148,6 +132,7 @@ class Sidebar extends HTMLElement {
         gridItems.forEach((grid, index) => {
             const gridItem = document.createElement("li");
             gridItem.className = "recent-menu-grid-item";
+            gridItem.id = grid.value;
 
             gridItem.dataset.value = grid.value;
 
@@ -163,6 +148,54 @@ class Sidebar extends HTMLElement {
         wrapper.append(menuTitle, menuList, menuGridWrap);
 
         return wrapper;
+    }
+
+    _renderAndListenClickEvent() {
+        this.sortEles = document.querySelectorAll(".recent-menu-item");
+        this.viewEles = document.querySelectorAll(".recent-menu-grid-item");
+
+        this._renderSortBy();
+        this._renderViewAs();
+
+        this.sortEles.forEach((sortItem) => {
+            const sortValue = sortItem.dataset.value;
+
+            sortItem.onclick = () => {
+                this.sortByValue = sortValue;
+                this._renderSortBy();
+                this.sortInstance.hide();
+                this.isShown = false;
+            };
+        });
+
+        this.viewEles.forEach((viewItem) => {
+            const viewValue = viewItem.dataset.value;
+
+            viewItem.onclick = () => {
+                this.viewAsValue = viewValue;
+                this._renderViewAs();
+                this._renderLibraryContent(viewValue);
+                this.sortInstance.hide();
+                this.isShown = false;
+            };
+        });
+
+        new Tooltip("#compact_list", {
+            content: "Compact list",
+            position: "top",
+        });
+        new Tooltip("#default_list", {
+            content: "Default list",
+            position: "top",
+        });
+        new Tooltip("#compact_grid", {
+            content: "Compact grid",
+            position: "top",
+        });
+        new Tooltip("#default_grid", {
+            content: "Default grid",
+            position: "top",
+        });
     }
     _renderSortBy() {
         this.sortEles.forEach((sortItem) => {
@@ -181,6 +214,19 @@ class Sidebar extends HTMLElement {
                 viewItem.classList.add("active");
             } else {
                 viewItem.classList.remove("active");
+            }
+        });
+    }
+
+    _renderLibraryContent(viewAsValue) {
+        const libraryContentEles =
+            document.querySelectorAll(".library-content");
+
+        libraryContentEles.forEach((item) => {
+            if (item.classList.contains(`library-${viewAsValue}`)) {
+                item.classList.add("active");
+            } else {
+                item.classList.remove("active");
             }
         });
     }

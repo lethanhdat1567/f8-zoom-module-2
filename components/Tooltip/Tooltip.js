@@ -215,16 +215,13 @@ class Tooltip {
     }
 
     hide() {
-        this.tooltipEle.addEventListener(
-            "transitionend",
-            () => {
-                if (document.body.contains(this.tooltipEle)) {
-                    document.body.removeChild(this.tooltipEle);
-                    this.tooltipEle.classList.remove("active");
-                }
-            },
-            { once: true }
-        );
+        this.tooltipEle.classList.remove("active");
+
+        setTimeout(() => {
+            if (document.body.contains(this.tooltipEle)) {
+                document.body.removeChild(this.tooltipEle);
+            }
+        }, 200); // khớp với transition-duration
     }
 }
 
