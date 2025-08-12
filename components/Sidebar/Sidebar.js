@@ -12,6 +12,23 @@ class Sidebar extends HTMLElement {
         this.innerHTML = html;
 
         // Recents tooltip
+        this._handleRecentTooltip();
+
+        // Search
+        this._handleSearchBtn();
+
+        // Nav tabs
+        this._handleNavTabs();
+
+        // Context Menu
+        this._handleContenxtMenu();
+
+        // Tooltip other
+        this.useTooltipContent();
+    }
+
+    // Recent tooltip
+    _handleRecentTooltip() {
         this.sortInstance = new Tooltip(".sort-btn", {
             position: "bottom-right",
             render: this._renderMenuList,
@@ -22,15 +39,16 @@ class Sidebar extends HTMLElement {
         this.sortByValue = "recents";
         this.viewAsValue = "default_list";
         this._renderLibraryContent(this.viewAsValue);
+
         // toggle show tooltip
         this.isShown = false;
 
-        document.onclick = (e) => {
+        document.addEventListener("click", (e) => {
             if (!this.sortInstance.tooltipEle.contains(e.target)) {
                 this.sortInstance.hide();
                 this.isShown = false;
             }
-        };
+        });
 
         sortBtn.onclick = (e) => {
             e.stopPropagation();
@@ -42,23 +60,7 @@ class Sidebar extends HTMLElement {
             }
             this.isShown = !this.isShown;
         };
-
-        // Tooltip other
-        this.useTooltipContent();
     }
-
-    useTooltipContent() {
-        // Tooltip
-        new Tooltip("#library-create-btn", {
-            content: "Create a playlist, folder, or Jam",
-            position: "top",
-        });
-        new Tooltip(".search-library-btn", {
-            content: "Search in Your Library",
-            position: "top",
-        });
-    }
-
     _renderMenuList() {
         const menuItems = [
             { name: "Recents", value: "recents" },
@@ -149,7 +151,6 @@ class Sidebar extends HTMLElement {
 
         return wrapper;
     }
-
     _renderAndListenClickEvent() {
         this.sortEles = document.querySelectorAll(".recent-menu-item");
         this.viewEles = document.querySelectorAll(".recent-menu-grid-item");
@@ -217,7 +218,6 @@ class Sidebar extends HTMLElement {
             }
         });
     }
-
     _renderLibraryContent(viewAsValue) {
         const libraryContentEles =
             document.querySelectorAll(".library-content");
@@ -228,6 +228,114 @@ class Sidebar extends HTMLElement {
             } else {
                 item.classList.remove("active");
             }
+        });
+    }
+
+    // Search
+    _handleSearchBtn() {
+        const searchWrapEle = document.querySelector(".search-library-wrap");
+
+        // Click search btn
+        searchWrapEle.onclick = (e) => {
+            if (!searchWrapEle.classList.contains("active")) {
+                e.stopPropagation();
+                searchWrapEle.classList.add("active");
+            }
+        };
+
+        // Click outside
+        document.addEventListener("click", (e) => {
+            if (!searchWrapEle.contains(e.target)) {
+                searchWrapEle.classList.remove("active");
+            }
+        });
+    }
+
+    // Nav tabs
+    _handleNavTabs() {
+        const navtabs = document.querySelectorAll(".nav-tab");
+
+        navtabs.forEach((nav) => {
+            nav.onclick = () => {
+                navtabs.forEach((nav) => nav.classList.remove("active"));
+
+                nav.classList.add("active");
+            };
+        });
+    }
+
+    // Context Menu
+    _handleContenxtMenu() {
+        const contextMenu = new Tooltip(".library-content", {
+            render: this._renderContextItem,
+            trigger: "contextmenu",
+        });
+
+        document.addEventListener("contextmenu", (e) => {
+            if (
+                !contextMenu.targetEle.contains(e.target) &&
+                !contextMenu.tooltipEle.contains(e.target)
+            ) {
+                contextMenu.hide();
+            }
+        });
+
+        document.addEventListener("click", (e) => {
+            if (
+                !contextMenu.targetEle.contains(e.target) &&
+                !contextMenu.tooltipEle.contains(e.target)
+            ) {
+                contextMenu.hide();
+            }
+        });
+    }
+
+    _renderContextItem() {
+        const contextMenu = document.createElement("ul");
+        contextMenu.className = "library-menu-list";
+
+        // Unfollow Item
+        const deleteItem = document.createElement("li");
+        deleteItem.className = "library-menu-item";
+
+        const deleteIconItem = document.createElement("i");
+        deleteIconItem.className = "fa-solid fa-x";
+        deleteIconItem.style.color = "green";
+
+        const deleteTextItem = document.createElement("span");
+        deleteTextItem.innerText = "Unfollow";
+        deleteTextItem.className = "library-menu-item-text";
+
+        deleteItem.append(deleteIconItem, deleteTextItem);
+
+        // Ban Item
+        const banItem = document.createElement("li");
+        banItem.className = "library-menu-item";
+
+        const banIconItem = document.createElement("i");
+        banIconItem.className = "fa-solid fa-ban";
+        banIconItem.style.color = "rgb(159 155 155)";
+
+        const banTextItem = document.createElement("span");
+        banTextItem.innerText = "Don't play this artist";
+        banTextItem.className = "library-menu-item-text";
+
+        banItem.append(banIconItem, banTextItem);
+
+        contextMenu.append(deleteItem, banItem);
+
+        return contextMenu;
+    }
+
+    useTooltipContent() {
+        // Tooltip
+        new Tooltip("#library-create-btn", {
+            content: "Create a playlist, folder, or Jam",
+            position: "top",
+        });
+        new Tooltip(".search-library-btn", {
+            content: "Search in Your Library",
+            position: "top",
         });
     }
 }

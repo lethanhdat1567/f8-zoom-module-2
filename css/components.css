@@ -218,7 +218,34 @@
     margin-bottom: var(--spacing-md);
 }
 
+.search-library-wrap {
+    position: relative;
+}
+
+.search-library-wrap.active {
+    background-color: hsla(0, 0%, 100%, 0.1);
+    border-radius: 4px;
+}
+
+.search-library-wrap.active .search-library-input {
+    width: 180px;
+}
+
+.search-library-input {
+    padding-left: 32px;
+    background-color: transparent;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: ease 0.4s;
+}
+
 .search-library-btn {
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 32px;
     height: 32px;
     border-radius: var(--radius-full);
@@ -236,6 +263,12 @@
     transform: scale(1.04);
 }
 
+.search-library-wrap.active .search-library-btn:hover {
+    background-color: transparent;
+    color: var(--text-primary);
+    transform: scale(1);
+}
+
 .sort-btn {
     padding: var(--spacing-xs) var(--spacing-sm);
     border-radius: var(--radius-sm);
@@ -247,10 +280,23 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    min-inline-size: 0px;
 }
 
 .sort-btn:hover {
     color: var(--text-primary);
+}
+
+.sort-btn .sort-btn-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.search-library-wrap.active + .sort-btn .sort-btn-text {
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
 }
 
 /* Side sort btn tooltip */
@@ -402,6 +448,43 @@
 
 .library-item.active {
     background-color: var(--bg-hover);
+}
+
+/* Library context menu */
+.library-menu-list {
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.library-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: ease 0.4s;
+}
+
+.library-menu-item:hover {
+    background-color: #393939;
+}
+
+.library-menu-item i {
+    width: 15px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.library-menu-item-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: #c5c5c5;
 }
 
 .item-image {

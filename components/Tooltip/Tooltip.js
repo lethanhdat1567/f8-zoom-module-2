@@ -12,6 +12,7 @@ class Tooltip {
                 content: "",
                 position: "bottom",
                 delay: 200,
+                // manual, contextmenu
                 trigger: null,
                 render: null,
             },
@@ -28,7 +29,12 @@ class Tooltip {
 
         this._createTooltip();
 
-        if (this.options.trigger !== "manual") {
+        if (this.options.trigger === "contextmenu") {
+            this.targetEle.addEventListener("contextmenu", (e) => {
+                e.preventDefault();
+                this.show(e);
+            });
+        } else if (this.options.trigger !== "manual") {
             this.targetEle.addEventListener(
                 "mouseover",
                 this._handleMouseOver.bind(this)
@@ -205,11 +211,17 @@ class Tooltip {
         this.isCheduled = false;
     }
 
-    show() {
+    show(e) {
         document.body.appendChild(this.tooltipEle);
 
-        const position = this.options.position;
-        this._setValidPosition(position);
+        if (e && e.type === "contextmenu") {
+            this.tooltipEle.style.position = "absolute";
+            this.tooltipEle.style.top = `${e.pageY}px`;
+            this.tooltipEle.style.left = `${e.pageX}px`;
+        } else {
+            const position = this.options.position;
+            this._setValidPosition(position);
+        }
 
         this.tooltipEle.classList.add("active");
     }
@@ -221,7 +233,7 @@ class Tooltip {
             if (document.body.contains(this.tooltipEle)) {
                 document.body.removeChild(this.tooltipEle);
             }
-        }, 200); // khớp với transition-duration
+        }, 200);
     }
 }
 

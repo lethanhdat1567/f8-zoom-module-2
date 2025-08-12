@@ -6,6 +6,9 @@ import "./components/AuthModal/AuthModal.js";
 
 // Auth Modal Functionality
 document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+    });
     // Get DOM elements
     const authModal = document.querySelector("spotify-auth-modal");
 
