@@ -23,6 +23,9 @@ class Sidebar extends HTMLElement {
         // Context Menu
         this._handleContenxtMenu();
 
+        // Click Logo
+        this._handleClickLogo();
+
         // Tooltip other
         this.useTooltipContent();
     }
@@ -325,6 +328,14 @@ class Sidebar extends HTMLElement {
         contextMenu.append(deleteItem, banItem);
 
         return contextMenu;
+    }
+
+    _handleClickLogo() {
+        const logo = document.querySelector(".logo");
+
+        logo.onclick = () => {
+            document.dispatchEvent(new CustomEvent("artist-detail:hide"));
+        };
     }
 
     useTooltipContent() {

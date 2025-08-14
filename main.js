@@ -4,6 +4,8 @@ import "./components/Main/index.js";
 import "./components/Player/Player.js";
 import "./components/AuthModal/AuthModal.js";
 import toast from "./utils/toast.js";
+import httpRequest from "./utils/httpRequest.js";
+import { formatAudioTime } from "./utils/timer.js";
 
 // Auth Modal Functionality
 document.addEventListener("DOMContentLoaded", function () {
@@ -21,46 +23,115 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// User Menu Dropdown Functionality
-// document.addEventListener("DOMContentLoaded", function () {
-//     const userAvatar = document.getElementById("userAvatar");
-//     const userDropdown = document.getElementById("userDropdown");
-//     const logoutBtn = document.getElementById("logoutBtn");
+// Show detail artist and tracks
+document.addEventListener("DOMContentLoaded", async function () {
+    const hitsSection = document.querySelector("spotify-hits");
+    const popularArtistsSection = document.querySelector(
+        "spotify-popular-artists"
+    );
 
-//     // Toggle dropdown when clicking avatar
-//     userAvatar.addEventListener("click", function (e) {
-//         e.stopPropagation();
-//         userDropdown.classList.toggle("show");
-//     });
+    // Artist detail section
+    const artistHeroSection = document.querySelector(".artist-hero");
+    const artistControlsSection = document.querySelector(".artist-controls");
+    const artistPopularSection = document.querySelector(".popular-section");
 
-//     // Close dropdown when clicking outside
-//     document.addEventListener("click", function (e) {
-//         if (
-//             !userAvatar.contains(e.target) &&
-//             !userDropdown.contains(e.target)
-//         ) {
-//             userDropdown.classList.remove("show");
-//         }
-//     });
+    // Get artist Id param
+    const params = new URLSearchParams(window.location.search);
+    const artistId = params.get("artistId");
 
-//     // Close dropdown when pressing Escape
-//     document.addEventListener("keydown", function (e) {
-//         if (e.key === "Escape" && userDropdown.classList.contains("show")) {
-//             userDropdown.classList.remove("show");
-//         }
-//     });
+    // Handle show detail
+    if (artistId) {
+        const artistInfo = await httpRequest.get(`artists/${artistId}`);
+        const { tracks } = await httpRequest.get(
+            `artists/${artistId}/tracks/popular`
+        );
 
-//     // Handle logout button click
-//     logoutBtn.addEventListener("click", function () {
-//         // Close dropdown first
-//         userDropdown.classList.remove("show");
+        const artistHeroHtml = `
+                        <div class="hero-background">
+                            <img
+                                src="${artistInfo.background_image_url}"
+                                alt="${artistInfo.name} artist background"
+                                class="hero-image"
+                            />
+                            <div class="hero-overlay"></div>
+                        </div>
+                        <div class="hero-content">
+                            ${
+                                artistInfo.is_verified &&
+                                ` <div class="verified-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Verified Artist</span>
+                                 </div>`
+                            }
+                            <h1 class="artist-name">${artistInfo.name}</h1>
+                            <p class="monthly-listeners">
+                                ${
+                                    artistInfo.monthly_listeners
+                                } monthly listeners
+                            </p>
+                        </div>                  
+        `;
+        const artistTracksHtml = tracks
+            .map((track, index) => {
+                return `
+                    <div class="track-item">
+                        <div class="track-number">${track.track_number}</div>
+                        <div class="track-image">
+                            <img
+                                src="${track.image_url}"
+                                alt="${track.title}"
+                            />
+                        </div>
+                        <div class="track-info">
+                            <div class="track-name">
+                                ${track.title}
+                            </div>
+                        </div>
+                        <div class="track-plays">${track.play_count}</div>
+                            <div class="track-duration">${formatAudioTime(
+                                track.duration
+                            )}</div>
+                            <button class="track-menu-btn">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </button>
+                        </div>
+        `;
+            })
+            .join("");
 
-//         console.log("Logout clicked");
-//         // TODO: Students will implement logout logic here
-//     });
-// });
+        // hide detail
+        hitsSection.hidden = true;
+        popularArtistsSection.hidden = true;
 
-// Other functionality
-// document.addEventListener("DOMContentLoaded", async function () {
-//     // TODO: Implement other functionality here
-// });
+        // Show detail
+        artistHeroSection.style.display = "block";
+        artistControlsSection.style.display = "flex";
+        artistPopularSection.style.display = "block";
+
+        artistHeroSection.innerHTML = artistHeroHtml;
+
+        const trackContainer =
+            artistPopularSection.querySelector(".track-list");
+        trackContainer.innerHTML = artistTracksHtml;
+    } else {
+        handleCloseArtistDetail();
+    }
+
+    document.addEventListener("artist-detail:hide", handleCloseArtistDetail);
+
+    function handleCloseArtistDetail() {
+        hitsSection.hidden = false;
+        popularArtistsSection.hidden = false;
+
+        artistHeroSection.style.display = "none";
+        artistControlsSection.style.display = "none";
+        artistPopularSection.style.display = "none";
+
+        params.delete("artistId");
+        const newUrl = params.toString()
+            ? `${location.pathname}?${params.toString()}`
+            : location.pathname;
+
+        history.replaceState(null, "", newUrl);
+    }
+});

@@ -22,6 +22,7 @@ class Header extends HTMLElement {
         this._handleShowModal();
         this._handleShowUserDropdown();
         this._handleLogout();
+        this._handleClickHome();
 
         try {
             const { user } = await httpRequest.get("users/me");
@@ -80,6 +81,14 @@ class Header extends HTMLElement {
                 message: "Bạn đã đăng xuất thành công",
                 type: "success",
             });
+        };
+    }
+
+    _handleClickHome() {
+        const home = document.querySelector(".home-btn");
+
+        home.onclick = () => {
+            document.dispatchEvent(new CustomEvent("artist-detail:hide"));
         };
     }
 }

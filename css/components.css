@@ -551,6 +551,7 @@
     height: 340px;
     margin: 0 -24px var(--spacing-lg) -24px;
     overflow: hidden;
+    display: none;
 }
 
 .hero-background {
@@ -613,7 +614,8 @@
 
 /* Artist Controls */
 .artist-controls {
-    display: flex;
+    display: none;
+    /* display: flex; */
     align-items: center;
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-2xl);
@@ -643,6 +645,7 @@
 
 /* Track List */
 .popular-section {
+    display: none;
     margin-bottom: var(--spacing-2xl);
 }
 
