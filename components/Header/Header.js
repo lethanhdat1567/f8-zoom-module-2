@@ -1,5 +1,6 @@
 import Tooltip from "../../components/Tooltip/Tooltip.js";
 import httpRequest from "../../utils/httpRequest.js";
+import toast from "../../utils/toast.js";
 
 class Header extends HTMLElement {
     constructor() {
@@ -15,21 +16,12 @@ class Header extends HTMLElement {
 
         this.innerHTML = html;
 
-        const signUpBtn = document.querySelector(".signup-btn");
-        const LoginBtn = document.querySelector(".login-btn");
-
-        // Show modal
-        signUpBtn.onclick = function () {
-            document.dispatchEvent(new CustomEvent("modal:open-signup"));
-        };
-
-        LoginBtn.onclick = function () {
-            document.dispatchEvent(new CustomEvent("modal:open-login"));
-        };
-
-        // Get user
         this.authSection = document.querySelector(".auth-buttons");
         this.userMenu = document.querySelector(".user-menu");
+
+        this._handleShowModal();
+        this._handleShowUserDropdown();
+        this._handleLogout();
 
         try {
             const { user } = await httpRequest.get("users/me");
@@ -45,10 +37,50 @@ class Header extends HTMLElement {
             content: "Home",
             position: "bottom",
         });
-        new Tooltip(".user-menu", {
-            content: "Le Thanh Dat",
-            position: "bottom",
+    }
+
+    _handleShowModal() {
+        const signUpBtn = document.querySelector(".signup-btn");
+        const LoginBtn = document.querySelector(".login-btn");
+
+        // Show modal
+        signUpBtn.onclick = function () {
+            document.dispatchEvent(new CustomEvent("modal:open-signup"));
+        };
+
+        LoginBtn.onclick = function () {
+            document.dispatchEvent(new CustomEvent("modal:open-login"));
+        };
+    }
+
+    _handleShowUserDropdown() {
+        const userDropdown = document.querySelector("#userDropdown");
+
+        this.userMenu.addEventListener("click", (e) => {
+            e.stopPropagation();
+            userDropdown.classList.toggle("show");
         });
+
+        document.addEventListener("click", (e) => {
+            if (
+                !userDropdown.contains(e.target) &&
+                !this.userMenu.contains(e.target)
+            ) {
+                userDropdown.classList.remove("show");
+            }
+        });
+    }
+
+    _handleLogout() {
+        const logoutBtn = document.querySelector("#logoutBtn");
+        logoutBtn.onclick = () => {
+            localStorage.removeItem("accessToken");
+            toast({
+                title: "Đăng xuất thành công!",
+                message: "Bạn đã đăng xuất thành công",
+                type: "success",
+            });
+        };
     }
 }
 

@@ -1,4 +1,5 @@
 import httpRequest from "../../utils/httpRequest.js";
+import toast from "../../utils/toast.js";
 
 class AuthModal extends HTMLElement {
     constructor() {
@@ -9,6 +10,7 @@ class AuthModal extends HTMLElement {
         this.authModal = null;
 
         this.displayNameSignUp = null;
+        this.displayUsernameSignUp = null;
         this.emailSignUp = null;
         this.passwordSignUp = null;
 
@@ -29,13 +31,18 @@ class AuthModal extends HTMLElement {
         this.loginForm = document.getElementById("loginForm");
         this.authModal = document.getElementById("authModal");
 
+        // Register input
         this.displayNameSignUp = this.signupForm.querySelector("#signupName");
+        this.displayUsernameSignUp =
+            this.signupForm.querySelector("#signupUsername");
         this.emailSignUp = this.signupForm.querySelector("#signupEmail");
         this.passwordSignUp = this.signupForm.querySelector("#signupPassword");
 
+        // Login input
         this.emailLogin = this.loginForm.querySelector("#loginEmail");
         this.passwordLogin = this.loginForm.querySelector("#loginPassword");
 
+        // Show pass icon
         this.togglePassSignup =
             this.signupForm.querySelector(".toggle-password");
 
@@ -139,10 +146,24 @@ class AuthModal extends HTMLElement {
 
         const credentials = {
             display_name: this.displayNameSignUp.value,
+            username: this.displayUsernameSignUp.value,
             email: this.emailSignUp.value,
             password: this.passwordSignUp.value,
         };
 
+        // Check errors
+        const errors = this._validateForm({
+            display_name: credentials.display_name,
+            username: credentials.username,
+            email: credentials.email,
+            password: credentials.password,
+        });
+
+        if (errors.length > 0) {
+            const formGroups = this.signupForm.querySelectorAll(".form-group");
+            this._setMutipleInvalid(Array.from(formGroups), errors);
+            return;
+        }
         try {
             const { access_token } = await httpRequest.post(
                 "auth/register",
@@ -151,6 +172,11 @@ class AuthModal extends HTMLElement {
             );
 
             localStorage.setItem("accessToken", access_token);
+            toast({
+                title: "Đăng kí thành công!",
+                message: "Bạn đã đăng kí tài khoản thành công",
+                type: "success",
+            });
             this._closeModal();
         } catch (error) {
             this._resetInvalid();
@@ -172,6 +198,17 @@ class AuthModal extends HTMLElement {
 
                 this._setInvalid(emailFormGroup, error.response.error.message);
             }
+
+            if (error.response.error.code === "USERNAME_EXISTS") {
+                const usernameFormGroup = this.signupForm.querySelector(
+                    ".form-group[data-field='username']"
+                );
+
+                this._setInvalid(
+                    usernameFormGroup,
+                    "Tên người dùng đã tồn tại"
+                );
+            }
         }
     }
 
@@ -184,6 +221,17 @@ class AuthModal extends HTMLElement {
             password: this.passwordLogin.value,
         };
 
+        const errors = this._validateForm({
+            email: credentials.email,
+            password: credentials.password,
+        });
+
+        if (errors.length > 0) {
+            const formGroups = this.loginForm.querySelectorAll(".form-group");
+            this._setMutipleInvalid(Array.from(formGroups), errors);
+            return;
+        }
+
         try {
             const { access_token } = await httpRequest.post(
                 "auth/login",
@@ -192,6 +240,11 @@ class AuthModal extends HTMLElement {
             );
 
             localStorage.setItem("accessToken", access_token);
+            toast({
+                title: "Đăng nhập thành công!",
+                message: "Bạn đã đăng nhập thành công",
+                type: "success",
+            });
             this._closeModal();
         } catch (error) {
             console.dir(error);
@@ -248,6 +301,7 @@ class AuthModal extends HTMLElement {
     _onChangeInput() {
         const inputsToChange = [
             this.displayNameSignUp,
+            this.displayUsernameSignUp,
             this.emailSignUp,
             this.passwordSignUp,
             this.emailLogin,
@@ -267,6 +321,57 @@ class AuthModal extends HTMLElement {
 
         toggleIcon.classList.toggle("fa-eye");
         toggleIcon.classList.toggle("fa-eye-slash");
+    }
+
+    _validateForm(fields, value) {
+        const errors = [];
+
+        const validations = {
+            display_name: {
+                isRequired: "Tên hiển thị không được để trống",
+            },
+            username: {
+                isRequired: "Tên người dùng không được để trống",
+            },
+            email: {
+                isRequired: "Email không được để trống",
+                regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Email không hợp lệ",
+            },
+            password: {
+                isRequired: "Password không được để trống",
+                regex: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/,
+                message:
+                    "Mật khẩu phải ít nhất 6 ký tự, có chữ hoa, chữ thường và số",
+            },
+        };
+
+        for (const field in fields) {
+            const value = fields[field];
+
+            if (validations[field]?.isRequired && !value.trim()) {
+                errors.push({
+                    field: field,
+                    message: validations[field].isRequired,
+                });
+
+                continue;
+            }
+
+            const regex = validations[field]?.regex;
+
+            if (regex) {
+                const valid = regex.test(value);
+                if (!valid) {
+                    errors.push({
+                        field: field,
+                        message: valid ? "" : validations[field].message,
+                    });
+                }
+            }
+        }
+
+        return errors;
     }
 }
 

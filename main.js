@@ -3,6 +3,7 @@ import "./components/Sidebar/Sidebar.js";
 import "./components/Main/index.js";
 import "./components/Player/Player.js";
 import "./components/AuthModal/AuthModal.js";
+import toast from "./utils/toast.js";
 
 // Auth Modal Functionality
 document.addEventListener("DOMContentLoaded", function () {
