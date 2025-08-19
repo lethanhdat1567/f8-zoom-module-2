@@ -1,4 +1,5 @@
 import Tooltip from "../Tooltip/Tooltip.js";
+import httpRequest from "../../utils/httpRequest.js";
 
 class Sidebar extends HTMLElement {
     constructor() {
@@ -23,13 +24,76 @@ class Sidebar extends HTMLElement {
         // Context Menu
         this._handleContenxtMenu();
 
+        // Render playlist
+        this._handleRenderPlaylist();
+
         // Click Logo
         this._handleClickLogo();
+
+        // Click create playlist
+        this._handleCreatePlaylist();
 
         // Tooltip other
         this.useTooltipContent();
     }
 
+    // Render Playlists
+    async _handleRenderPlaylist() {
+        const wrapper = document.querySelector(".library-content.active");
+
+        try {
+            const { tracks } = await httpRequest.get("/me/tracks/liked");
+            const { playlists } = await httpRequest.get(
+                "me/playlists/followed"
+            );
+            const { artists } = await httpRequest.get("me/following");
+            const { albums } = await httpRequest.get("/me/albums/liked");
+
+            const myLikedSongs = tracks.map((track) => {
+                return { ...track, type: "liked_songs" };
+            });
+            const myPlaylists = playlists.map((playlist) => {
+                return { ...playlist, type: "playlist" };
+            });
+            const myArtists = artists.map((artist) => {
+                return { ...artist, type: "artist" };
+            });
+            const myAlbums = albums.map((album) => {
+                return { ...album, type: "album" };
+            });
+
+            const playlistsData = [
+                ...myLikedSongs,
+                ...myPlaylists,
+                ...myArtists,
+                ...myAlbums,
+            ];
+
+            const sortedPlaylists = playlistsData.sort(
+                (a, b) => new Date(b.followed_at) - new Date(a.followed_at)
+            );
+
+            const artistHtml = sortedPlaylists
+                .map((item) => {
+                    return `<div class="library-item">
+                                <img
+                                    src="${item.image_url}"
+                                    alt="${item.name}"
+                                    class="item-image"
+                                />
+                                <div class="item-info">
+                                    <div class="item-title">${item.name}</div>
+                                    <div class="item-subtitle">Artist</div>
+                                </div>
+                            </div>`;
+                })
+                .join("");
+
+            wrapper.innerHTML = artistHtml;
+        } catch (error) {
+            console.log(error);
+        }
+    }
     // Recent tooltip
     _handleRecentTooltip() {
         this.sortInstance = new Tooltip(".sort-btn", {
@@ -348,6 +412,14 @@ class Sidebar extends HTMLElement {
             content: "Search in Your Library",
             position: "top",
         });
+    }
+
+    _handleCreatePlaylist() {
+        const createBtn = document.querySelector("#library-create-btn");
+
+        createBtn.onclick = () => {
+            document.dispatchEvent(new CustomEvent("create:playlist"));
+        };
     }
 }
 

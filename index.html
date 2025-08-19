@@ -15,6 +15,12 @@
         <link rel="stylesheet" href="css/components.css" />
         <link rel="stylesheet" href="css/layout.css" />
         <link rel="stylesheet" href="css/responsive.css" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+            rel="stylesheet"
+        />
     </head>
     <body>
         <div class="app-container">
@@ -41,6 +47,7 @@
                         <button class="play-btn-large">
                             <i class="fas fa-play"></i>
                         </button>
+                        <button class="follow-artist-btn"></button>
                     </section>
 
                     <!-- Tracks -->
@@ -48,6 +55,93 @@
                         <h2 class="section-title">Popular</h2>
                         <div class="track-list"></div>
                     </section>
+
+                    <!-- Create Playlist -->
+                    <div class="playlist-wrapper">
+                        <div class="playlist-header">
+                            <div class="playlist-header_thumbnail">
+                                <img class="playlist-header-image" />
+                                <span class="playlist-header-thumbnail-icon"
+                                    ><i class="fa-solid fa-music"></i
+                                ></span>
+                                <div class="playlist-header-thumbnail-hover">
+                                    <span
+                                        class="playlist-header-thumbnail-hover-icon"
+                                        ><i class="fa-solid fa-pen"></i
+                                    ></span>
+                                    <span
+                                        class="playlist-header-thumbnail-hover-text"
+                                        >Choose photo</span
+                                    >
+                                </div>
+                            </div>
+                            <div class="playlist-header-info">
+                                <p class="playlist-header-info_status">
+                                    Public Playlist
+                                </p>
+                                <h1 class="playlist-header_title">
+                                    My Playlist
+                                </h1>
+                                <p class="playlist-header_name">Le Thanh Dat</p>
+                            </div>
+                        </div>
+                        <div class="playlist-body">
+                            <div class="playlist-body-options">
+                                <div class="playlist-body-options_left">
+                                    <span
+                                        class="playlist-body-options_left-icon"
+                                        ><i class="fa-solid fa-user-plus"></i
+                                    ></span>
+                                    <span
+                                        class="playlist-body-options_left-icon"
+                                        ><i class="fa-solid fa-ellipsis"></i
+                                    ></span>
+                                </div>
+                                <div class="playlist-body-options_right">
+                                    <div
+                                        class="playlist-body-options_right-list"
+                                    >
+                                        <span
+                                            class="playlist-body-options_right-list-text"
+                                            >List</span
+                                        >
+                                        <span
+                                            class="playlist-body-options_right-list-icon"
+                                            ><i class="fa-solid fa-list"></i
+                                        ></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="playlist-body-suggest">
+                                <div class="playlist-body-suggest-left">
+                                    <h2 class="playlist-body-suggest-left-text">
+                                        Let's find something for your playlist
+                                    </h2>
+                                    <div
+                                        class="playlist-body-suggest-left_search"
+                                    >
+                                        <span
+                                            class="playlist-body-suggest-left_search-icon"
+                                            ><i
+                                                class="fa-solid fa-magnifying-glass"
+                                            ></i
+                                        ></span>
+                                        <input
+                                            placeholder="Search for songs or episodes"
+                                            class="playlist-body-suggest-left_search-input"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="playlist-body-suggest-right">
+                                    <button
+                                        class="playlist-body-suggest-right-close"
+                                    >
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </main>
 
@@ -58,6 +152,61 @@
         <!-- Auth Modal -->
         <spotify-auth-modal></spotify-auth-modal>
 
+        <!-- Create list modal -->
+        <div class="playlist-modal">
+            <div class="playlist-modal-content">
+                <div class="playlist-modal-header">
+                    <h3 class="playlist-modal-header-title">Edit details</h3>
+                    <button class="playlist-modal-header-close">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div class="playlist-modal-body">
+                    <div class="playlist-header_thumbnail create">
+                        <img class="playlist-header-image" />
+                        <span class="playlist-header-thumbnail-icon"
+                            ><i class="fa-solid fa-music"></i
+                        ></span>
+                        <div class="playlist-header-thumbnail-hover">
+                            <span class="playlist-header-thumbnail-hover-icon"
+                                ><i class="fa-solid fa-pen"></i
+                            ></span>
+                            <span class="playlist-header-thumbnail-hover-text"
+                                >Choose photo</span
+                            >
+                        </div>
+                    </div>
+                    <div class="playlist-modal-body-input-wrapper">
+                        <label class="playlist-modal-body-input-label"
+                            >Name</label
+                        >
+                        <input
+                            class="playlist-modal-body-input"
+                            placeholder="Add a name"
+                        />
+                    </div>
+                    <div class="playlist-modal-body-area-wrapper">
+                        <label class="playlist-modal-body-input-label"
+                            >Description</label
+                        >
+                        <textarea
+                            class="playlist-modal-body-input area"
+                            placeholder="Add a optional description"
+                        ></textarea>
+                    </div>
+                    <div class="playlist-modal-body-input-save">
+                        <button class="playlist-modal-body-input-save-btn">
+                            Save
+                        </button>
+                    </div>
+                    <p class="playlist-modal-body-input-note">
+                        By proceeding, you agree to give Spotify access to the
+                        image you choose to upload. Please make sure you have
+                        the right to upload the image.
+                    </p>
+                </div>
+            </div>
+        </div>
         <!-- Toast -->
         <div id="toast"></div>
 

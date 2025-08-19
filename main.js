@@ -113,6 +113,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         const trackContainer =
             artistPopularSection.querySelector(".track-list");
         trackContainer.innerHTML = artistTracksHtml;
+
+        handleFollowAritst(artistInfo);
     } else {
         handleCloseArtistDetail();
     }
@@ -134,4 +136,49 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         history.replaceState(null, "", newUrl);
     }
+
+    async function handleFollowAritst(artistInfo) {
+        const followBtn = document.querySelector(".follow-artist-btn");
+
+        const { artists } = await httpRequest.get("me/following");
+
+        let isFollowed = artists.some((artist) => artist.id === artistId);
+
+        followBtn.textContent = isFollowed ? "Following" : "Follow";
+
+        followBtn.onclick = async () => {
+            // Follow artist
+            try {
+                if (isFollowed) {
+                    await httpRequest.del(`artists/${artistId}/follow`);
+
+                    followBtn.textContent = "Follow";
+                    isFollowed = !isFollowed;
+                    toast({
+                        title: `Đã hủy lưu playlist của bạn`,
+                        type: "success",
+                    });
+                } else {
+                    await httpRequest.post(`artists/${artistId}/follow`);
+
+                    followBtn.textContent = "Following";
+                    isFollowed = !isFollowed;
+
+                    toast({
+                        title: `Đã lưu vào playlist của bạn`,
+                        type: "success",
+                    });
+                }
+            } catch (error) {
+                console.dir(error);
+            }
+        };
+    }
+});
+
+// Create playlist
+document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("create:playlist", () => {
+        console.log("123");
+    });
 });
