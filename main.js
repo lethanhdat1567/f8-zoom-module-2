@@ -129,12 +129,13 @@ document.addEventListener("DOMContentLoaded", async function () {
         artistControlsSection.style.display = "none";
         artistPopularSection.style.display = "none";
 
-        params.delete("artistId");
-        const newUrl = params.toString()
-            ? `${location.pathname}?${params.toString()}`
-            : location.pathname;
+        // params.delete("artistId");
+        // params.delete("playlist");
+        // const newUrl = params.toString()
+        //     ? `${location.pathname}?${params.toString()}`
+        //     : location.pathname;
 
-        history.replaceState(null, "", newUrl);
+        // history.replaceState(null, "", newUrl);
     }
 
     async function handleFollowAritst(artistInfo) {
@@ -178,7 +179,184 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 // Create playlist
 document.addEventListener("DOMContentLoaded", function () {
-    document.addEventListener("create:playlist", () => {
-        console.log("123");
+    const hitsSection = document.querySelector("spotify-hits");
+    const popularArtistsSection = document.querySelector(
+        "spotify-popular-artists"
+    );
+    const playlistWrapper = document.querySelector(".playlist-wrapper");
+
+    // --- Helpers ---
+    async function showPlaylistView() {
+        hitsSection.hidden = true;
+        popularArtistsSection.hidden = true;
+        playlistWrapper.style.display = "block";
+
+        const params = new URLSearchParams(window.location.search);
+        const playlistId = params.get("playlist");
+
+        try {
+            const playlist = await httpRequest.get(`playlists/${playlistId}`);
+
+            const playlistInfo = document.querySelector(".playlist-header");
+
+            const playlistInfoHtml = `
+                 <div class="playlist-header_thumbnail">
+                                ${
+                                    playlist.image_url
+                                        ? ` <img class="playlist-header-image" src="${playlist.image_url}" />`
+                                        : ` <span class="playlist-header-thumbnail-icon"><i class="fa-solid fa-music"></i>
+                                        </span>
+                                            <div class="playlist-header-thumbnail-hover">
+                                                <span
+                                                    class="playlist-header-thumbnail-hover-icon"
+                                                    ><i class="fa-solid fa-pen"></i
+                                                ></span>
+                                                <span
+                                                    class="playlist-header-thumbnail-hover-text"
+                                                    >Choose photo</span
+                                                >
+                                            </div>`
+                                }
+                               
+                               
+                            </div>
+                            <div class="playlist-header-info">
+                                <p class="playlist-header-info_status">
+                                    ${
+                                        playlist.is_public
+                                            ? "Public Playlist"
+                                            : "Unpublic Playlist"
+                                    }
+                                </p>
+                                <h1 class="playlist-header_title">
+                                    ${playlist.name}
+                                </h1>
+                                <p class="playlist-header_name">${
+                                    playlist.user_display_name
+                                }</p>
+                            </div>
+            `;
+
+            playlistInfo.innerHTML = playlistInfoHtml;
+        } catch (error) {
+            console.log(error);
+        }
+
+        handleOpenModal(playlistId);
+    }
+
+    function showDefaultView() {
+        hitsSection.hidden = false;
+        popularArtistsSection.hidden = false;
+        playlistWrapper.style.display = "none";
+    }
+
+    // --- Init view theo query param ---
+    const params = new URLSearchParams(window.location.search);
+    const playlistId = params.get("playlist");
+
+    if (playlistId) {
+        showPlaylistView();
+    } else {
+        showDefaultView();
+    }
+
+    // --- Handle create playlist event ---
+    document.addEventListener("create:playlist", async () => {
+        try {
+            const res = await httpRequest.post("playlists", {
+                name: "My Playlist",
+            });
+
+            const newPlaylistId = res?.playlist?.id;
+            if (newPlaylistId) {
+                const params = new URLSearchParams(window.location.search);
+                params.set("playlist", newPlaylistId);
+
+                // Update URL mà không reload trang
+                window.history.replaceState(
+                    {},
+                    "",
+                    `${window.location.pathname}?${params.toString()}`
+                );
+
+                showPlaylistView();
+            } else {
+                showDefaultView();
+            }
+        } catch (err) {
+            console.error("❌ Failed to create playlist:", err);
+            showDefaultView();
+        }
     });
+
+    document.addEventListener("artist-detail:hide", showDefaultView);
 });
+
+function handleOpenModal(playlistId) {
+    // Modal
+    const thumbnailEle = document.querySelector(".playlist-header_thumbnail");
+    const playlistModal = document.querySelector(".playlist-modal");
+    const closeBtn = document.querySelector(".playlist-modal-header-close");
+
+    // Form
+    const playlistForm = document.querySelector(".playlist-modal-body");
+    const fields = playlistForm.querySelectorAll(".playlist-modal-body-input");
+    const uploadInput = document.querySelector("#playlist-thumbnail");
+    let thumbnail_url = null;
+
+    thumbnailEle.onclick = () => {
+        playlistModal.classList.add("active");
+    };
+
+    uploadInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append("cover", file);
+
+            try {
+                const res = await httpRequest.post(
+                    `upload/playlist/${playlistId}/cover`,
+                    formData
+                );
+
+                thumbnail_url = `https://spotify.f8team.dev${res.file.url}`;
+            } catch (error) {
+                console.error(error);
+            }
+        }
+    };
+
+    closeBtn.onclick = () => {
+        playlistModal.classList.remove("active");
+    };
+
+    playlistForm.onsubmit = async (e) => {
+        e.preventDefault();
+        let data = {};
+        let isEmpty = false;
+        for (const field of fields) {
+            if (!field.value.trim()) {
+                isEmpty = true;
+                break;
+            }
+            data = {
+                ...data,
+                [field.name]: field.value,
+            };
+        }
+        data["is_public"] = true;
+        if (thumbnail_url) {
+            data["image_url"] = thumbnail_url;
+        }
+
+        try {
+            const res = await httpRequest.put(`playlists/${playlistId}`, data);
+
+            console.log(res);
+        } catch (error) {
+            console.log(error);
+        }
+    };
+}

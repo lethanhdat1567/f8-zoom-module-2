@@ -58,33 +58,7 @@
 
                     <!-- Create Playlist -->
                     <div class="playlist-wrapper">
-                        <div class="playlist-header">
-                            <div class="playlist-header_thumbnail">
-                                <img class="playlist-header-image" />
-                                <span class="playlist-header-thumbnail-icon"
-                                    ><i class="fa-solid fa-music"></i
-                                ></span>
-                                <div class="playlist-header-thumbnail-hover">
-                                    <span
-                                        class="playlist-header-thumbnail-hover-icon"
-                                        ><i class="fa-solid fa-pen"></i
-                                    ></span>
-                                    <span
-                                        class="playlist-header-thumbnail-hover-text"
-                                        >Choose photo</span
-                                    >
-                                </div>
-                            </div>
-                            <div class="playlist-header-info">
-                                <p class="playlist-header-info_status">
-                                    Public Playlist
-                                </p>
-                                <h1 class="playlist-header_title">
-                                    My Playlist
-                                </h1>
-                                <p class="playlist-header_name">Le Thanh Dat</p>
-                            </div>
-                        </div>
+                        <div class="playlist-header"></div>
                         <div class="playlist-body">
                             <div class="playlist-body-options">
                                 <div class="playlist-body-options_left">
@@ -161,20 +135,24 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
-                <div class="playlist-modal-body">
+                <form class="playlist-modal-body">
                     <div class="playlist-header_thumbnail create">
                         <img class="playlist-header-image" />
                         <span class="playlist-header-thumbnail-icon"
                             ><i class="fa-solid fa-music"></i
                         ></span>
-                        <div class="playlist-header-thumbnail-hover">
+                        <input type="file" hidden id="playlist-thumbnail" />
+                        <label
+                            for="playlist-thumbnail"
+                            class="playlist-header-thumbnail-hover"
+                        >
                             <span class="playlist-header-thumbnail-hover-icon"
                                 ><i class="fa-solid fa-pen"></i
                             ></span>
                             <span class="playlist-header-thumbnail-hover-text"
                                 >Choose photo</span
                             >
-                        </div>
+                        </label>
                     </div>
                     <div class="playlist-modal-body-input-wrapper">
                         <label class="playlist-modal-body-input-label"
@@ -182,6 +160,7 @@
                         >
                         <input
                             class="playlist-modal-body-input"
+                            name="name"
                             placeholder="Add a name"
                         />
                     </div>
@@ -191,11 +170,15 @@
                         >
                         <textarea
                             class="playlist-modal-body-input area"
+                            name="description"
                             placeholder="Add a optional description"
                         ></textarea>
                     </div>
                     <div class="playlist-modal-body-input-save">
-                        <button class="playlist-modal-body-input-save-btn">
+                        <button
+                            class="playlist-modal-body-input-save-btn"
+                            type="submit"
+                        >
                             Save
                         </button>
                     </div>
@@ -204,7 +187,7 @@
                         image you choose to upload. Please make sure you have
                         the right to upload the image.
                     </p>
-                </div>
+                </form>
             </div>
         </div>
         <!-- Toast -->

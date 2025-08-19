@@ -10,12 +10,14 @@ class HttpRequest {
                 method,
                 headers: {
                     ...options.headers,
-                    "Content-type": "application/json",
                 },
             };
 
-            if (data) {
+            if (data instanceof FormData) {
+                _options.body = data;
+            } else if (data) {
                 _options.body = JSON.stringify(data);
+                _options.headers["Content-Type"] = "application/json";
             }
 
             const accessToken = localStorage.getItem("accessToken");
