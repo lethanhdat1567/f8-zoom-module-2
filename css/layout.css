@@ -131,6 +131,10 @@
     flex-direction: column;
 }
 
+.library-default-grid-item .item-subtitle {
+    white-space: unset;
+}
+
 .library-default-grid-item-image {
     width: 100%;
     height: 84px;

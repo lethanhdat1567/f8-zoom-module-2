@@ -12,6 +12,9 @@ class Sidebar extends HTMLElement {
         const html = await res.text();
 
         this.innerHTML = html;
+        this.menuContextItem = null;
+        this.contextMenu = null;
+
         this._handleGetPlaylist();
     }
 
@@ -27,9 +30,6 @@ class Sidebar extends HTMLElement {
 
         // Context Menu
         this._handleContenxtMenu();
-
-        // Render playlist
-        this._handleRenderPlaylist();
 
         // Click Logo
         this._handleClickLogo();
@@ -75,7 +75,7 @@ class Sidebar extends HTMLElement {
     }
 
     // Render Playlists
-    async _handleRenderPlaylist() {
+    async _handleRenderPlaylist(viewAsValue) {
         const wrapper = document.querySelector(".library-content.active");
         const { user } = this.props;
         if (!user) {
@@ -85,20 +85,17 @@ class Sidebar extends HTMLElement {
 
         const sortedPlaylists = this.props.playlists;
 
+        const renderMap = {
+            default_list: this._renderDefaultList,
+            compact_list: this._renderCompactList,
+            default_grid: this._renderDefaultGrid,
+            compact_grid: this._renderCompactGrid,
+        };
+        const renderFunction =
+            renderMap[viewAsValue] || this._renderDefaultList;
+
         const artistHtml = sortedPlaylists
-            .map((item) => {
-                return `<div class="library-item">
-                                <img
-                                    src="${item.image_url}"
-                                    alt="${item.name}"
-                                    class="item-image"
-                                />
-                                <div class="item-info">
-                                    <div class="item-title">${item.name}</div>
-                                    <div class="item-subtitle">Artist</div>
-                                </div>
-                            </div>`;
-            })
+            .map((item) => renderFunction(item))
             .join("");
 
         wrapper.innerHTML = artistHtml;
@@ -301,6 +298,8 @@ class Sidebar extends HTMLElement {
         libraryContentEles.forEach((item) => {
             if (item.classList.contains(`library-${viewAsValue}`)) {
                 item.classList.add("active");
+                // Render playlist
+                this._handleRenderPlaylist(viewAsValue);
             } else {
                 item.classList.remove("active");
             }
@@ -332,43 +331,54 @@ class Sidebar extends HTMLElement {
         const navtabs = document.querySelectorAll(".nav-tab");
 
         navtabs.forEach((nav) => {
-            nav.onclick = () => {
-                navtabs.forEach((nav) => nav.classList.remove("active"));
-
-                nav.classList.add("active");
+            nav.onclick = async () => {
+                await this._handleGetPlaylist();
+                if (nav.className.includes("active")) {
+                    nav.classList.remove("active");
+                } else {
+                    navtabs.forEach((nav) => nav.classList.remove("active"));
+                    nav.classList.add("active");
+                    dispatch("NAV_PLAYLIST", nav.dataset.type);
+                }
             };
         });
     }
 
     // Context Menu
     _handleContenxtMenu() {
-        const contextMenu = new Tooltip(".library-content", {
-            render: this._renderContextItem,
+        if (this.contextMenu) return;
+        this.contextMenu = new Tooltip(".library-content", {
+            render: this._renderContextItem.bind(this),
             trigger: "contextmenu",
         });
 
         document.addEventListener("contextmenu", (e) => {
             if (
-                !contextMenu.targetEle.contains(e.target) &&
-                !contextMenu.tooltipEle.contains(e.target)
+                !this.contextMenu.targetEle.contains(e.target) &&
+                !this.contextMenu.tooltipEle.contains(e.target)
             ) {
-                contextMenu.hide();
+                this.contextMenu.hide();
+            } else {
+                const targetEle = e.target;
+                const item = targetEle.closest(".library-item");
+                this.menuContextItem = item;
+
+                this.contextMenu.rerender();
             }
         });
 
         document.addEventListener("click", (e) => {
             if (
-                !contextMenu.targetEle.contains(e.target) &&
-                !contextMenu.tooltipEle.contains(e.target)
+                !this.contextMenu.targetEle.contains(e.target) &&
+                !this.contextMenu.tooltipEle.contains(e.target)
             ) {
-                contextMenu.hide();
+                this.contextMenu.hide();
             }
         });
     }
-
     _renderContextItem() {
-        const contextMenu = document.createElement("ul");
-        contextMenu.className = "library-menu-list";
+        const contextMenuWrapper = document.createElement("ul");
+        contextMenuWrapper.className = "library-menu-list";
 
         // Unfollow Item
         const deleteItem = document.createElement("li");
@@ -379,7 +389,12 @@ class Sidebar extends HTMLElement {
         deleteIconItem.style.color = "green";
 
         const deleteTextItem = document.createElement("span");
-        deleteTextItem.innerText = "Unfollow";
+
+        const type = this.menuContextItem?.dataset?.type;
+        deleteTextItem.innerText = `Unfollow this ${
+            type === "artist" ? "artist" : "playlist"
+        }`;
+
         deleteTextItem.className = "library-menu-item-text";
 
         deleteItem.append(deleteIconItem, deleteTextItem);
@@ -398,9 +413,31 @@ class Sidebar extends HTMLElement {
 
         banItem.append(banIconItem, banTextItem);
 
-        contextMenu.append(deleteItem, banItem);
+        contextMenuWrapper.append(deleteItem, banItem);
 
-        return contextMenu;
+        deleteItem.onclick = async () => {
+            const { id, type } = this.menuContextItem.dataset;
+
+            if (type === "artist") {
+                try {
+                    await httpRequest.del(`artists/${id}/follow`);
+                    dispatch("REMOVE-PLAYLIST-ITEM", id);
+                    this.contextMenu.hide();
+                } catch (error) {
+                    console.log(error);
+                }
+            } else if (type === "playlist") {
+                try {
+                    await httpRequest.del(`playlists/${id}`);
+                    dispatch("REMOVE-PLAYLIST-ITEM", id);
+                    this.contextMenu.hide();
+                } catch (error) {
+                    console.log(error);
+                }
+            }
+        };
+
+        return contextMenuWrapper;
     }
 
     _handleClickLogo() {
@@ -429,6 +466,77 @@ class Sidebar extends HTMLElement {
         createBtn.onclick = () => {
             document.dispatchEvent(new CustomEvent("create:playlist"));
         };
+    }
+
+    // Render library
+    _renderDefaultList(item) {
+        return `
+        <a href="/?${item.type}=${item.id}">
+            <div class="library-item" data-type="${item.type}" data-id="${
+            item.id
+        }">
+                <img src="${item.image_url}" alt="${
+            item.name
+        }" class="item-image" />
+                <div class="item-info">
+                    <div class="item-title">${item.name}</div>
+                    <div class="item-subtitle">
+                        ${
+                            item.type === "artist"
+                                ? "Artist"
+                                : `Playlist • ${item.user_display_name}`
+                        }
+                    </div>
+                </div>
+            </div>
+        </a>
+    `;
+    }
+
+    _renderCompactList(item) {
+        return `
+       <div class="library-item library-compact_list-item">
+            <div class="item-title">${item.name}</div>
+            <p class="library-content-separate"></p>
+            <div class="item-subtitle">${
+                item.type === "artist"
+                    ? "Artist"
+                    : `Playlist • ${item.user_display_name}`
+            }</div>
+        </div>
+    `;
+    }
+
+    _renderDefaultGrid(item) {
+        return `
+         <div class="library-item library-default-grid-item active">
+            <img
+                src="${item.image_url}"
+                alt="${item.name}"
+                class="library-default-grid-item-image item-image"
+            />
+            <div class="item-info">
+                <div class="item-title">${item.name}</div>
+                <div class="item-subtitle">${
+                    item.type === "artist"
+                        ? "Artist"
+                        : `Playlist • ${item.user_display_name}`
+                }</div>
+            </div>
+        </div>
+    `;
+    }
+
+    _renderCompactGrid(item) {
+        return `
+        <div class="library-item library-compact-grid-item">
+            <img
+                src="${item.image_url}"
+                alt="${item.name}"
+                class="library-compact-grid-item-image item-image"
+            />
+        </div>
+    `;
     }
 }
 

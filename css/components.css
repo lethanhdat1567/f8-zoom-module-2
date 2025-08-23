@@ -1452,6 +1452,9 @@
 }
 
 .playlist-header-image {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -1459,6 +1462,7 @@
 
 .playlist-header_thumbnail:hover .playlist-header-thumbnail-hover {
     display: flex;
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 .playlist-header_thumbnail:hover .playlist-header-thumbnail-icon {
@@ -1477,12 +1481,15 @@
 .playlist-header-thumbnail-hover {
     display: none;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
     flex-direction: column;
     align-items: center;
     gap: 4px;
+    z-index: 2;
 }
 
 .playlist-header-thumbnail-hover-icon {

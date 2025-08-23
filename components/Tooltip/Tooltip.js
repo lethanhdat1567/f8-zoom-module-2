@@ -235,6 +235,24 @@ class Tooltip {
             }
         }, 200);
     }
+
+    rerender() {
+        if (!this.tooltipEle) return;
+        this.tooltipEle.innerHTML = "";
+
+        if (this.options.render) {
+            const renderedEle = this.options.render(this);
+            if (!renderedEle) {
+                throw new Error("render must return an element");
+            }
+            this.tooltipEle.appendChild(renderedEle);
+        } else if (this.options.content) {
+            const tooltipContentEle = document.createElement("p");
+            tooltipContentEle.className = "tooltip-content";
+            tooltipContentEle.textContent = this.options.content;
+            this.tooltipEle.appendChild(tooltipContentEle);
+        }
+    }
 }
 
 export default Tooltip;

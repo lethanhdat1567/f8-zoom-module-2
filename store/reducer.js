@@ -22,7 +22,7 @@ export default function reducer(state = init, action, args) {
                 playlists: [args[0], ...state.playlists],
             };
 
-        case "UPDATE_PLAYLIST":
+        case "UPDATE_PLAYLIST": {
             const updatedPlaylist = state.playlists.map((playlist) => {
                 if (playlist.id === args[0].id) {
                     return { ...playlist, ...args[0] };
@@ -34,6 +34,27 @@ export default function reducer(state = init, action, args) {
                 ...state,
                 playlists: updatedPlaylist,
             };
+        }
+        case "REMOVE-PLAYLIST-ITEM": {
+            const updatedPlaylist = state.playlists.filter(
+                (playlist) => playlist.id !== args[0]
+            );
+            return {
+                ...state,
+                playlists: updatedPlaylist,
+            };
+        }
+
+        case "NAV_PLAYLIST": {
+            const playlists = state.playlists.filter(
+                (playlist) => playlist.type === args[0]
+            );
+
+            return {
+                ...state,
+                playlists: playlists,
+            };
+        }
 
         default:
             return state;

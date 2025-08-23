@@ -41,7 +41,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Get artist Id param
     const params = new URLSearchParams(window.location.search);
-    const artistId = params.get("artistId");
+    const artistId = params.get("artist");
 
     // Handle show detail
     if (artistId) {
@@ -125,7 +125,9 @@ document.addEventListener("DOMContentLoaded", async function () {
         handleCloseArtistDetail();
     }
 
-    document.addEventListener("back-to-home", handleCloseArtistDetail);
+    document.addEventListener("back-to-home", () =>
+        handleBackToHome("detail-artist")
+    );
 
     function handleCloseArtistDetail() {
         hitsSection.hidden = false;
@@ -134,9 +136,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         artistHeroSection.style.display = "none";
         artistControlsSection.style.display = "none";
         artistPopularSection.style.display = "none";
-
-        // const newUrl = window.location.pathname;
-        // window.history.replaceState({}, "", newUrl);
     }
 
     async function handleFollowAritst() {
@@ -184,7 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const popularArtistsSection = document.querySelector(
         "spotify-popular-artists"
     );
-    const playlistWrapper = document.querySelector("spotify-auth-modal");
+    const playlistWrapper = document.querySelector("spotify-create-playlist");
 
     // --- Init view theo query param ---
     const params = new URLSearchParams(window.location.search);
@@ -225,6 +224,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     document.addEventListener("modal:open-create-playlist", handleOpenModal);
+    document.addEventListener("back-to-home", () =>
+        handleBackToHome("create-playlist")
+    );
 });
 
 async function handleOpenModal() {
@@ -249,8 +251,12 @@ async function handleOpenModal() {
     const res = await httpRequest.get(`playlists/${playlistId}`);
     inputName.value = res.name;
     inputDesc.value = res.description;
-    thumbnailEle.src = res.image_url;
+    if (res.image_url) {
+        thumbnailEle.src = res.image_url;
+        thumbnailEle.style.display = "block";
+    }
     playlistModal.classList.add("active");
+    uploadInput.click();
     handleShowOption();
 
     closeBtn.onclick = () => {
@@ -272,6 +278,7 @@ async function handleOpenModal() {
 
                 thumbnail_url = `https://spotify.f8team.dev${res.file.url}`;
                 thumbnailEle.src = thumbnail_url;
+                thumbnailEle.style.display = "block";
             } catch (error) {
                 console.error(error);
             }
@@ -292,11 +299,13 @@ async function handleOpenModal() {
         }
 
         data.is_public = true;
-        if (thumbnail_url) {
+        if (thumbnail_url !== null) {
             data.image_url = thumbnail_url;
         }
 
         try {
+            console.log(data);
+
             const res = await httpRequest.put(`playlists/${playlistId}`, data);
             dispatch("UPDATE_PLAYLIST", res.playlist);
             playlistModal.classList.remove("active");
@@ -310,22 +319,71 @@ async function handleOpenModal() {
             alertEle.classList.remove("active");
         }
     });
+
+    function handleShowOption() {
+        const optionsBtn = document.querySelector(".playlist-options-btn");
+        const optionsDropdown = document.querySelector(
+            ".playlist-options-dropdown-list-wrap"
+        );
+
+        optionsBtn.onclick = (e) => {
+            optionsDropdown.classList.toggle("show");
+            e.stopPropagation();
+        };
+
+        document.addEventListener("click", (e) => {
+            if (!optionsDropdown.contains(e.target)) {
+                optionsDropdown.classList.remove("show");
+            }
+        });
+
+        const optionsItem = document.querySelectorAll(
+            ".playlist-options-dropdown-item"
+        );
+
+        optionsItem.forEach((option) => {
+            option.onclick = function () {
+                const type = option.dataset.option;
+                if (type === "change-photo") {
+                    uploadInput.click();
+                } else if (type === "remove-photo") {
+                    thumbnail_url = "";
+                    thumbnailEle.src = "";
+                    thumbnailEle.style.display = "none";
+                }
+                optionsDropdown.classList.remove("show");
+            };
+        });
+    }
 }
 
-function handleShowOption() {
-    const optionsBtn = document.querySelector(".playlist-options-btn");
-    const optionsDropdown = document.querySelector(
-        ".playlist-options-dropdown-list-wrap"
+function handleBackToHome(section) {
+    const hitsSection = document.querySelector("spotify-hits");
+    const popularArtistsSection = document.querySelector(
+        "spotify-popular-artists"
     );
+    hitsSection.hidden = false;
+    popularArtistsSection.hidden = false;
 
-    optionsBtn.onclick = (e) => {
-        optionsDropdown.classList.toggle("show");
-        e.stopPropagation();
-    };
+    if (section === "detail-artist") {
+        const artistHeroSection = document.querySelector(".artist-hero");
+        const artistControlsSection =
+            document.querySelector(".artist-controls");
+        const artistPopularSection = document.querySelector(".popular-section");
 
-    document.addEventListener("click", (e) => {
-        if (!optionsDropdown.contains(e.target)) {
-            optionsDropdown.classList.remove("show");
-        }
-    });
+        artistHeroSection.style.display = "none";
+        artistControlsSection.style.display = "none";
+        artistPopularSection.style.display = "none";
+    }
+
+    if (section === "create-playlist") {
+        const playlistWrapper = document.querySelector(
+            "spotify-create-playlist"
+        );
+
+        playlistWrapper.hidden = true;
+    }
+
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, "", newUrl);
 }

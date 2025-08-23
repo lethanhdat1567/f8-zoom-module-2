@@ -30,7 +30,7 @@ class PopularArtists extends HTMLElement {
             const tracksHtml = artists
                 .map((artist) => {
                     return `
-                     <a href="/?artistId=${artist.id}">
+                     <a href="/?artist=${artist.id}">
                          <div class="artist-card">
                             <div class="artist-card-cover">
                                 <img

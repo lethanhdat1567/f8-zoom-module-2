@@ -39,26 +39,32 @@ class CreatePlaylist extends HTMLElement {
             const playlistInfo = document.querySelector(".playlist-header");
 
             const playlistInfoHtml = `
-                 <div class="playlist-header_thumbnail">
-                                ${
-                                    playlistDetail.image_url
-                                        ? ` <img class="playlist-header-image" src="${playlistDetail.image_url}" />`
-                                        : ` <span class="playlist-header-thumbnail-icon"><i class="fa-solid fa-music"></i>
-                                        </span>
-                                            <div class="playlist-header-thumbnail-hover">
-                                                <span
-                                                    class="playlist-header-thumbnail-hover-icon"
-                                                    ><i class="fa-solid fa-pen"></i
-                                                ></span>
-                                                <span
-                                                    class="playlist-header-thumbnail-hover-text"
-                                                    >Choose photo</span
-                                                >
-                                            </div>`
-                                }
-
-                            </div>
-                            <div class="playlist-header-info">
+                  <div class="playlist-header_thumbnail">
+                        <img class="playlist-header-image" ${
+                            playlistDetail.image_url &&
+                            `src="${playlistDetail.image_url}"`
+                        } />
+                        <span class="playlist-header-thumbnail-icon"
+                            ><i class="fa-solid fa-music"></i>
+                        </span>
+                        <div class="playlist-header-thumbnail-hover">
+                <span class="playlist-header-thumbnail-hover-icon"
+                    ><i class="fa-solid fa-pen"></i
+                ></span>
+                <span class="playlist-header-thumbnail-hover-text"
+                    >Choose photo</span
+                >
+            </div>
+                    </div>
+                        <div class="playlist-header-thumbnail-hover">
+                            <span class="playlist-header-thumbnail-hover-icon"
+                                ><i class="fa-solid fa-pen"></i
+                            ></span>
+                            <span class="playlist-header-thumbnail-hover-text"
+                                >Choose photo</span
+                            >
+                        </div>
+                        <div class="playlist-header-info">
                                 <p class="playlist-header-info_status">
                                     ${
                                         playlistDetail.is_public
