@@ -1,5 +1,6 @@
 import Tooltip from "../Tooltip/Tooltip.js";
 import httpRequest from "../../utils/httpRequest.js";
+import { connect, dispatch } from "../../store/store.js";
 
 class Sidebar extends HTMLElement {
     constructor() {
@@ -11,7 +12,10 @@ class Sidebar extends HTMLElement {
         const html = await res.text();
 
         this.innerHTML = html;
+        this._handleGetPlaylist();
+    }
 
+    render() {
         // Recents tooltip
         this._handleRecentTooltip();
 
@@ -37,17 +41,12 @@ class Sidebar extends HTMLElement {
         this.useTooltipContent();
     }
 
-    // Render Playlists
-    async _handleRenderPlaylist() {
-        const wrapper = document.querySelector(".library-content.active");
-
+    // Filter and save playlists
+    async _handleGetPlaylist() {
         try {
-            const { tracks } = await httpRequest.get("/me/tracks/liked");
-            const { playlists } = await httpRequest.get(
-                "me/playlists/followed"
-            );
+            const { tracks } = await httpRequest.get("me/tracks/liked");
             const { artists } = await httpRequest.get("me/following");
-            const { albums } = await httpRequest.get("/me/albums/liked");
+            const { playlists } = await httpRequest.get("me/playlists");
 
             const myLikedSongs = tracks.map((track) => {
                 return { ...track, type: "liked_songs" };
@@ -58,24 +57,37 @@ class Sidebar extends HTMLElement {
             const myArtists = artists.map((artist) => {
                 return { ...artist, type: "artist" };
             });
-            const myAlbums = albums.map((album) => {
-                return { ...album, type: "album" };
-            });
 
             const playlistsData = [
                 ...myLikedSongs,
                 ...myPlaylists,
                 ...myArtists,
-                ...myAlbums,
             ];
 
             const sortedPlaylists = playlistsData.sort(
                 (a, b) => new Date(b.followed_at) - new Date(a.followed_at)
             );
 
-            const artistHtml = sortedPlaylists
-                .map((item) => {
-                    return `<div class="library-item">
+            dispatch("SET_PLAYLIST", sortedPlaylists);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    // Render Playlists
+    async _handleRenderPlaylist() {
+        const wrapper = document.querySelector(".library-content.active");
+        const { user } = this.props;
+        if (!user) {
+            wrapper.innerHTML = "";
+            return;
+        }
+
+        const sortedPlaylists = this.props.playlists;
+
+        const artistHtml = sortedPlaylists
+            .map((item) => {
+                return `<div class="library-item">
                                 <img
                                     src="${item.image_url}"
                                     alt="${item.name}"
@@ -86,13 +98,10 @@ class Sidebar extends HTMLElement {
                                     <div class="item-subtitle">Artist</div>
                                 </div>
                             </div>`;
-                })
-                .join("");
+            })
+            .join("");
 
-            wrapper.innerHTML = artistHtml;
-        } catch (error) {
-            console.log(error);
-        }
+        wrapper.innerHTML = artistHtml;
     }
     // Recent tooltip
     _handleRecentTooltip() {
@@ -398,7 +407,7 @@ class Sidebar extends HTMLElement {
         const logo = document.querySelector(".logo");
 
         logo.onclick = () => {
-            document.dispatchEvent(new CustomEvent("artist-detail:hide"));
+            document.dispatchEvent(new CustomEvent("back-to-home"));
         };
     }
 
@@ -423,4 +432,4 @@ class Sidebar extends HTMLElement {
     }
 }
 
-customElements.define("spotify-sidebar", Sidebar);
+customElements.define("spotify-sidebar", connect()(Sidebar));

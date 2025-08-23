@@ -1,4 +1,5 @@
 import Tooltip from "../../components/Tooltip/Tooltip.js";
+import { connect, dispatch } from "../../store/store.js";
 import httpRequest from "../../utils/httpRequest.js";
 import toast from "../../utils/toast.js";
 
@@ -18,20 +19,35 @@ class Header extends HTMLElement {
 
         this.authSection = document.querySelector(".auth-buttons");
         this.userMenu = document.querySelector(".user-menu");
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
+            this.userMenu.style.display = "flex";
+            this.authSection.style.display = "none";
+            try {
+                const { user } = await httpRequest.get("users/me");
 
+                dispatch("SET_USER", user);
+            } catch (error) {}
+        }
+
+        this.render();
+    }
+
+    async render() {
         this._handleShowModal();
         this._handleShowUserDropdown();
         this._handleLogout();
         this._handleClickHome();
 
-        try {
-            const { user } = await httpRequest.get("users/me");
+        const { user } = this.props;
 
-            if (user) {
-                this.userMenu.style.display = "flex";
-                this.authSection.style.display = "none";
-            }
-        } catch (error) {}
+        if (user) {
+            this.userMenu.style.display = "flex";
+            this.authSection.style.display = "none";
+        } else {
+            this.userMenu.style.display = "none";
+            this.authSection.style.display = "flex";
+        }
 
         // Tooltip
         new Tooltip(".home-btn", {
@@ -57,25 +73,43 @@ class Header extends HTMLElement {
     _handleShowUserDropdown() {
         const userDropdown = document.querySelector("#userDropdown");
 
-        this.userMenu.addEventListener("click", (e) => {
+        // Xóa listener event cũ
+        if (this._userMenuClickHandler) {
+            this.userMenu.removeEventListener(
+                "click",
+                this._userMenuClickHandler
+            );
+        }
+        if (this._docClickHandler) {
+            document.removeEventListener("click", this._docClickHandler);
+        }
+
+        this._userMenuClickHandler = (e) => {
             e.stopPropagation();
             userDropdown.classList.toggle("show");
-        });
+        };
 
-        document.addEventListener("click", (e) => {
+        this._docClickHandler = (e) => {
             if (
-                !userDropdown.contains(e.target) &&
-                !this.userMenu.contains(e.target)
+                userDropdown.classList.contains("show") &&
+                !this.userMenu.contains(e.target) &&
+                !userDropdown.contains(e.target)
             ) {
                 userDropdown.classList.remove("show");
             }
-        });
+        };
+
+        // Gắn lại event
+        this.userMenu.addEventListener("click", this._userMenuClickHandler);
+        document.addEventListener("click", this._docClickHandler);
     }
 
     _handleLogout() {
         const logoutBtn = document.querySelector("#logoutBtn");
         logoutBtn.onclick = () => {
             localStorage.removeItem("accessToken");
+            dispatch("LOGOUT");
+
             toast({
                 title: "Đăng xuất thành công!",
                 message: "Bạn đã đăng xuất thành công",
@@ -88,9 +122,9 @@ class Header extends HTMLElement {
         const home = document.querySelector(".home-btn");
 
         home.onclick = () => {
-            document.dispatchEvent(new CustomEvent("artist-detail:hide"));
+            document.dispatchEvent(new CustomEvent("back-to-home"));
         };
     }
 }
 
-customElements.define("spotify-header", Header);
+customElements.define("spotify-header", connect()(Header));

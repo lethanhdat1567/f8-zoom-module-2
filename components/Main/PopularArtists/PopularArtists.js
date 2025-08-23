@@ -1,3 +1,4 @@
+import { connect } from "../../../store/store.js";
 import httpRequest from "../../../utils/httpRequest.js";
 
 class PopularArtists extends HTMLElement {
@@ -13,6 +14,10 @@ class PopularArtists extends HTMLElement {
 
         this.innerHTML = html;
 
+        this.render();
+    }
+
+    render() {
         this._handleRenderPopularArtists();
     }
 
@@ -53,4 +58,4 @@ class PopularArtists extends HTMLElement {
     }
 }
 
-customElements.define("spotify-popular-artists", PopularArtists);
+customElements.define("spotify-popular-artists", connect()(PopularArtists));

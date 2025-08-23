@@ -1,5 +1,6 @@
 import httpRequest from "../../utils/httpRequest.js";
 import toast from "../../utils/toast.js";
+import { connect, dispatch } from "../../store/store.js";
 
 class AuthModal extends HTMLElement {
     constructor() {
@@ -27,6 +28,7 @@ class AuthModal extends HTMLElement {
 
         this.innerHTML = html;
 
+        // Form Element
         this.signupForm = document.getElementById("signupForm");
         this.loginForm = document.getElementById("loginForm");
         this.authModal = document.getElementById("authModal");
@@ -165,18 +167,21 @@ class AuthModal extends HTMLElement {
             return;
         }
         try {
-            const { access_token } = await httpRequest.post(
+            const res = await httpRequest.post(
                 "auth/register",
                 credentials,
                 {}
             );
 
-            localStorage.setItem("accessToken", access_token);
+            localStorage.setItem("accessToken", res.access_token);
+            dispatch("SET_USER", res.user);
+
             toast({
                 title: "Đăng kí thành công!",
                 message: "Bạn đã đăng kí tài khoản thành công",
                 type: "success",
             });
+
             this._closeModal();
         } catch (error) {
             this._resetInvalid();
@@ -233,13 +238,11 @@ class AuthModal extends HTMLElement {
         }
 
         try {
-            const { access_token } = await httpRequest.post(
-                "auth/login",
-                credentials,
-                {}
-            );
+            const res = await httpRequest.post("auth/login", credentials, {});
 
-            localStorage.setItem("accessToken", access_token);
+            localStorage.setItem("accessToken", res.access_token);
+            dispatch("SET_USER", res.user);
+
             toast({
                 title: "Đăng nhập thành công!",
                 message: "Bạn đã đăng nhập thành công",
@@ -375,4 +378,4 @@ class AuthModal extends HTMLElement {
     }
 }
 
-customElements.define("spotify-auth-modal", AuthModal);
+customElements.define("spotify-auth-modal", connect()(AuthModal));

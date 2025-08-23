@@ -1,3 +1,4 @@
+import { connect } from "../../../store/store.js";
 import httpRequest from "../../../utils/httpRequest.js";
 
 class Hits extends HTMLElement {
@@ -11,6 +12,10 @@ class Hits extends HTMLElement {
 
         this.innerHTML = html;
 
+        this.render();
+    }
+
+    render() {
         this._handleRenderHits();
     }
 
@@ -49,4 +54,4 @@ class Hits extends HTMLElement {
     }
 }
 
-customElements.define("spotify-hits", Hits);
+customElements.define("spotify-hits", connect()(Hits));

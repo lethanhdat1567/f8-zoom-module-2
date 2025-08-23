@@ -57,65 +57,7 @@
                     </section>
 
                     <!-- Create Playlist -->
-                    <div class="playlist-wrapper">
-                        <div class="playlist-header"></div>
-                        <div class="playlist-body">
-                            <div class="playlist-body-options">
-                                <div class="playlist-body-options_left">
-                                    <span
-                                        class="playlist-body-options_left-icon"
-                                        ><i class="fa-solid fa-user-plus"></i
-                                    ></span>
-                                    <span
-                                        class="playlist-body-options_left-icon"
-                                        ><i class="fa-solid fa-ellipsis"></i
-                                    ></span>
-                                </div>
-                                <div class="playlist-body-options_right">
-                                    <div
-                                        class="playlist-body-options_right-list"
-                                    >
-                                        <span
-                                            class="playlist-body-options_right-list-text"
-                                            >List</span
-                                        >
-                                        <span
-                                            class="playlist-body-options_right-list-icon"
-                                            ><i class="fa-solid fa-list"></i
-                                        ></span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="playlist-body-suggest">
-                                <div class="playlist-body-suggest-left">
-                                    <h2 class="playlist-body-suggest-left-text">
-                                        Let's find something for your playlist
-                                    </h2>
-                                    <div
-                                        class="playlist-body-suggest-left_search"
-                                    >
-                                        <span
-                                            class="playlist-body-suggest-left_search-icon"
-                                            ><i
-                                                class="fa-solid fa-magnifying-glass"
-                                            ></i
-                                        ></span>
-                                        <input
-                                            placeholder="Search for songs or episodes"
-                                            class="playlist-body-suggest-left_search-input"
-                                        />
-                                    </div>
-                                </div>
-                                <div class="playlist-body-suggest-right">
-                                    <button
-                                        class="playlist-body-suggest-right-close"
-                                    >
-                                        <i class="fa-solid fa-xmark"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <spotify-create-playlist></spotify-create-playlist>
                 </div>
             </main>
 
@@ -135,24 +77,52 @@
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
+                <div class="playlist-alert">
+                    <span class="playlist-alert-icon">
+                        <i class="fa-solid fa-exclamation"></i>
+                    </span>
+                    <p class="playlist-alert-text">
+                        Playlist name is required.
+                    </p>
+                </div>
                 <form class="playlist-modal-body">
-                    <div class="playlist-header_thumbnail create">
-                        <img class="playlist-header-image" />
-                        <span class="playlist-header-thumbnail-icon"
-                            ><i class="fa-solid fa-music"></i
-                        ></span>
+                    <div class="playlist-thumbnail-wrapper">
+                        <div class="playlist-thumbnail">
+                            <img class="playlist-thumbnail-image" />
+                        </div>
                         <input type="file" hidden id="playlist-thumbnail" />
                         <label
+                            class="playlist-upload"
                             for="playlist-thumbnail"
-                            class="playlist-header-thumbnail-hover"
-                        >
-                            <span class="playlist-header-thumbnail-hover-icon"
+                        ></label>
+                        <span class="playlist-thumbnail-icon"
+                            ><i class="fa-solid fa-music"></i
+                        ></span>
+                        <div class="playlist-thumbnail-hover-label">
+                            <span class="playlist-thumbnail-hover-icon"
                                 ><i class="fa-solid fa-pen"></i
                             ></span>
-                            <span class="playlist-header-thumbnail-hover-text"
+                            <span class="playlist-thumbnail-hover-text"
                                 >Choose photo</span
                             >
-                        </label>
+                        </div>
+                        <div class="playlist-options">
+                            <div class="playlist-options-btn">
+                                <i class="fa-solid fa-ellipsis"></i>
+                            </div>
+                            <div class="playlist-options-dropdown-list-wrap">
+                                <ul class="playlist-options-dropdown-list">
+                                    <li class="playlist-options-dropdown-item">
+                                        <i class="fa-solid fa-image"></i>
+                                        Change photo
+                                    </li>
+                                    <li class="playlist-options-dropdown-item">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                        Remove photo
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                     <div class="playlist-modal-body-input-wrapper">
                         <label class="playlist-modal-body-input-label"

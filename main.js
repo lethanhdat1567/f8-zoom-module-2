@@ -3,9 +3,12 @@ import "./components/Sidebar/Sidebar.js";
 import "./components/Main/index.js";
 import "./components/Player/Player.js";
 import "./components/AuthModal/AuthModal.js";
+import "./components/CreatePlaylist/CreatePlaylist.js";
 import toast from "./utils/toast.js";
 import httpRequest from "./utils/httpRequest.js";
 import { formatAudioTime } from "./utils/timer.js";
+import { formatNumber } from "./utils/helper.js";
+import { dispatch } from "./store/store.js";
 
 // Auth Modal Functionality
 document.addEventListener("DOMContentLoaded", function () {
@@ -25,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // Show detail artist and tracks
 document.addEventListener("DOMContentLoaded", async function () {
+    // Section to hide
     const hitsSection = document.querySelector("spotify-hits");
     const popularArtistsSection = document.querySelector(
         "spotify-popular-artists"
@@ -65,14 +69,14 @@ document.addEventListener("DOMContentLoaded", async function () {
                             }
                             <h1 class="artist-name">${artistInfo.name}</h1>
                             <p class="monthly-listeners">
-                                ${
+                                ${formatNumber(
                                     artistInfo.monthly_listeners
-                                } monthly listeners
+                                )} monthly listeners
                             </p>
-                        </div>                  
+                        </div>
         `;
         const artistTracksHtml = tracks
-            .map((track, index) => {
+            .map((track) => {
                 return `
                     <div class="track-item">
                         <div class="track-number">${track.track_number}</div>
@@ -87,7 +91,9 @@ document.addEventListener("DOMContentLoaded", async function () {
                                 ${track.title}
                             </div>
                         </div>
-                        <div class="track-plays">${track.play_count}</div>
+                        <div class="track-plays">${formatNumber(
+                            track.play_count
+                        )}</div>
                             <div class="track-duration">${formatAudioTime(
                                 track.duration
                             )}</div>
@@ -119,7 +125,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         handleCloseArtistDetail();
     }
 
-    document.addEventListener("artist-detail:hide", handleCloseArtistDetail);
+    document.addEventListener("back-to-home", handleCloseArtistDetail);
 
     function handleCloseArtistDetail() {
         hitsSection.hidden = false;
@@ -129,16 +135,11 @@ document.addEventListener("DOMContentLoaded", async function () {
         artistControlsSection.style.display = "none";
         artistPopularSection.style.display = "none";
 
-        // params.delete("artistId");
-        // params.delete("playlist");
-        // const newUrl = params.toString()
-        //     ? `${location.pathname}?${params.toString()}`
-        //     : location.pathname;
-
-        // history.replaceState(null, "", newUrl);
+        // const newUrl = window.location.pathname;
+        // window.history.replaceState({}, "", newUrl);
     }
 
-    async function handleFollowAritst(artistInfo) {
+    async function handleFollowAritst() {
         const followBtn = document.querySelector(".follow-artist-btn");
 
         const { artists } = await httpRequest.get("me/following");
@@ -183,82 +184,20 @@ document.addEventListener("DOMContentLoaded", function () {
     const popularArtistsSection = document.querySelector(
         "spotify-popular-artists"
     );
-    const playlistWrapper = document.querySelector(".playlist-wrapper");
-
-    // --- Helpers ---
-    async function showPlaylistView() {
-        hitsSection.hidden = true;
-        popularArtistsSection.hidden = true;
-        playlistWrapper.style.display = "block";
-
-        const params = new URLSearchParams(window.location.search);
-        const playlistId = params.get("playlist");
-
-        try {
-            const playlist = await httpRequest.get(`playlists/${playlistId}`);
-
-            const playlistInfo = document.querySelector(".playlist-header");
-
-            const playlistInfoHtml = `
-                 <div class="playlist-header_thumbnail">
-                                ${
-                                    playlist.image_url
-                                        ? ` <img class="playlist-header-image" src="${playlist.image_url}" />`
-                                        : ` <span class="playlist-header-thumbnail-icon"><i class="fa-solid fa-music"></i>
-                                        </span>
-                                            <div class="playlist-header-thumbnail-hover">
-                                                <span
-                                                    class="playlist-header-thumbnail-hover-icon"
-                                                    ><i class="fa-solid fa-pen"></i
-                                                ></span>
-                                                <span
-                                                    class="playlist-header-thumbnail-hover-text"
-                                                    >Choose photo</span
-                                                >
-                                            </div>`
-                                }
-                               
-                               
-                            </div>
-                            <div class="playlist-header-info">
-                                <p class="playlist-header-info_status">
-                                    ${
-                                        playlist.is_public
-                                            ? "Public Playlist"
-                                            : "Unpublic Playlist"
-                                    }
-                                </p>
-                                <h1 class="playlist-header_title">
-                                    ${playlist.name}
-                                </h1>
-                                <p class="playlist-header_name">${
-                                    playlist.user_display_name
-                                }</p>
-                            </div>
-            `;
-
-            playlistInfo.innerHTML = playlistInfoHtml;
-        } catch (error) {
-            console.log(error);
-        }
-
-        handleOpenModal(playlistId);
-    }
-
-    function showDefaultView() {
-        hitsSection.hidden = false;
-        popularArtistsSection.hidden = false;
-        playlistWrapper.style.display = "none";
-    }
+    const playlistWrapper = document.querySelector("spotify-auth-modal");
 
     // --- Init view theo query param ---
     const params = new URLSearchParams(window.location.search);
     const playlistId = params.get("playlist");
 
     if (playlistId) {
-        showPlaylistView();
+        hitsSection.hidden = true;
+        popularArtistsSection.hidden = true;
+        playlistWrapper.hidden = false;
     } else {
-        showDefaultView();
+        hitsSection.hidden = false;
+        popularArtistsSection.hidden = false;
+        playlistWrapper.hidden = true;
     }
 
     // --- Handle create playlist event ---
@@ -268,21 +207,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 name: "My Playlist",
             });
 
+            dispatch("ADD_PLAYLIST", res.playlist);
+
             const newPlaylistId = res?.playlist?.id;
             if (newPlaylistId) {
                 const params = new URLSearchParams(window.location.search);
                 params.set("playlist", newPlaylistId);
 
-                // Update URL mà không reload trang
-                window.history.replaceState(
-                    {},
-                    "",
-                    `${window.location.pathname}?${params.toString()}`
-                );
-
-                showPlaylistView();
-            } else {
-                showDefaultView();
+                window.location.href = `${
+                    window.location.pathname
+                }?${params.toString()}`;
             }
         } catch (err) {
             console.error("❌ Failed to create playlist:", err);
@@ -290,25 +224,40 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    document.addEventListener("artist-detail:hide", showDefaultView);
+    document.addEventListener("modal:open-create-playlist", handleOpenModal);
 });
 
-function handleOpenModal(playlistId) {
+async function handleOpenModal() {
+    const params = new URLSearchParams(window.location.search);
+    const playlistId = params.get("playlist");
     // Modal
-    const thumbnailEle = document.querySelector(".playlist-header_thumbnail");
+    const thumbnailEle = document.querySelector(".playlist-thumbnail-image");
     const playlistModal = document.querySelector(".playlist-modal");
     const closeBtn = document.querySelector(".playlist-modal-header-close");
 
     // Form
     const playlistForm = document.querySelector(".playlist-modal-body");
-    const fields = playlistForm.querySelectorAll(".playlist-modal-body-input");
+    const alertEle = document.querySelector(".playlist-alert");
     const uploadInput = document.querySelector("#playlist-thumbnail");
     let thumbnail_url = null;
 
-    thumbnailEle.onclick = () => {
-        playlistModal.classList.add("active");
+    // Fields
+    const inputName = playlistForm.querySelector("[name=name]");
+    const inputDesc = playlistForm.querySelector("[name=description]");
+
+    // Show modal and set value
+    const res = await httpRequest.get(`playlists/${playlistId}`);
+    inputName.value = res.name;
+    inputDesc.value = res.description;
+    thumbnailEle.src = res.image_url;
+    playlistModal.classList.add("active");
+    handleShowOption();
+
+    closeBtn.onclick = () => {
+        playlistModal.classList.remove("active");
     };
 
+    // Handle Upload Image
     uploadInput.onchange = async (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -322,41 +271,61 @@ function handleOpenModal(playlistId) {
                 );
 
                 thumbnail_url = `https://spotify.f8team.dev${res.file.url}`;
+                thumbnailEle.src = thumbnail_url;
             } catch (error) {
                 console.error(error);
             }
         }
     };
 
-    closeBtn.onclick = () => {
-        playlistModal.classList.remove("active");
-    };
-
+    // Handle submit form
     playlistForm.onsubmit = async (e) => {
         e.preventDefault();
-        let data = {};
-        let isEmpty = false;
-        for (const field of fields) {
-            if (!field.value.trim()) {
-                isEmpty = true;
-                break;
-            }
-            data = {
-                ...data,
-                [field.name]: field.value,
-            };
+
+        const data = Object.fromEntries(new FormData(playlistForm));
+
+        if (!data.name.trim()) {
+            // báo lỗi hoặc return
+            inputName.classList.add("error");
+            alertEle.classList.add("active");
+            return;
         }
-        data["is_public"] = true;
+
+        data.is_public = true;
         if (thumbnail_url) {
-            data["image_url"] = thumbnail_url;
+            data.image_url = thumbnail_url;
         }
 
         try {
             const res = await httpRequest.put(`playlists/${playlistId}`, data);
-
-            console.log(res);
+            dispatch("UPDATE_PLAYLIST", res.playlist);
+            playlistModal.classList.remove("active");
         } catch (error) {
             console.log(error);
         }
     };
+    inputName.addEventListener("input", () => {
+        if (inputName.classList.contains("error")) {
+            inputName.classList.remove("error");
+            alertEle.classList.remove("active");
+        }
+    });
+}
+
+function handleShowOption() {
+    const optionsBtn = document.querySelector(".playlist-options-btn");
+    const optionsDropdown = document.querySelector(
+        ".playlist-options-dropdown-list-wrap"
+    );
+
+    optionsBtn.onclick = (e) => {
+        optionsDropdown.classList.toggle("show");
+        e.stopPropagation();
+    };
+
+    document.addEventListener("click", (e) => {
+        if (!optionsDropdown.contains(e.target)) {
+            optionsDropdown.classList.remove("show");
+        }
+    });
 }
