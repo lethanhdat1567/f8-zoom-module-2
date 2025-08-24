@@ -1,4 +1,4 @@
-import { connect } from "../../../store/store.js";
+import { connect, dispatch } from "../../../store/store.js";
 import httpRequest from "../../../utils/httpRequest.js";
 
 class Hits extends HTMLElement {
@@ -12,12 +12,11 @@ class Hits extends HTMLElement {
 
         this.innerHTML = html;
 
-        this.render();
+        await this._handleRenderHits();
+        this._handlePlayTrack();
     }
 
-    render() {
-        this._handleRenderHits();
-    }
+    render() {}
 
     async _handleRenderHits() {
         const container = document.querySelector(".hits-grid");
@@ -28,7 +27,7 @@ class Hits extends HTMLElement {
             const tracksHtml = tracks
                 .map((track) => {
                     return `
-                    <div class="hit-card">
+                    <div class="hit-card" data-id="${track.id}">
                         <div class="hit-card-cover">
                             <img
                                 src="${track.image_url}"
@@ -51,6 +50,22 @@ class Hits extends HTMLElement {
         } catch (error) {
             console.log(error);
         }
+    }
+
+    _handlePlayTrack() {
+        const tracksEle = document.querySelectorAll(".hit-card");
+
+        tracksEle.forEach((track) => {
+            track.onclick = async () => {
+                const id = track.dataset.id;
+                try {
+                    const res = await httpRequest.post(`tracks/${id}/play`);
+                    dispatch("SET_TRACK", res.track);
+                } catch (error) {
+                    console.log(error);
+                }
+            };
+        });
     }
 }
 

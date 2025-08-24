@@ -42,15 +42,11 @@ class Sidebar extends HTMLElement {
     }
 
     // Filter and save playlists
-    async _handleGetPlaylist() {
+    async _handleGetPlaylist(searchValue) {
         try {
-            const { tracks } = await httpRequest.get("me/tracks/liked");
             const { artists } = await httpRequest.get("me/following");
             const { playlists } = await httpRequest.get("me/playlists");
 
-            const myLikedSongs = tracks.map((track) => {
-                return { ...track, type: "liked_songs" };
-            });
             const myPlaylists = playlists.map((playlist) => {
                 return { ...playlist, type: "playlist" };
             });
@@ -58,17 +54,23 @@ class Sidebar extends HTMLElement {
                 return { ...artist, type: "artist" };
             });
 
-            const playlistsData = [
-                ...myLikedSongs,
-                ...myPlaylists,
-                ...myArtists,
-            ];
+            const playlistsData = [...myPlaylists, ...myArtists];
 
             const sortedPlaylists = playlistsData.sort(
                 (a, b) => new Date(b.followed_at) - new Date(a.followed_at)
             );
 
-            dispatch("SET_PLAYLIST", sortedPlaylists);
+            let result;
+            if (searchValue) {
+                const keyword = searchValue.toLowerCase().trim();
+                result = sortedPlaylists.filter((item) =>
+                    item.name.toLowerCase().includes(keyword)
+                );
+            } else {
+                result = sortedPlaylists;
+            }
+
+            dispatch("SET_PLAYLIST", result);
         } catch (error) {
             console.log(error);
         }
@@ -324,6 +326,16 @@ class Sidebar extends HTMLElement {
                 searchWrapEle.classList.remove("active");
             }
         });
+
+        // Change input
+        const searchInput = document.querySelector(".search-library-input");
+
+        searchInput.oninput = (e) => {
+            const value = e.target.value;
+            console.log(value);
+
+            this._handleGetPlaylist(value);
+        };
     }
 
     // Nav tabs
@@ -470,32 +482,50 @@ class Sidebar extends HTMLElement {
 
     // Render library
     _renderDefaultList(item) {
+        const params = new URLSearchParams(window.location.search);
+        const playlistId = params.get("playlist");
+        const artistId = params.get("artist");
+
+        const LIKED_ID = "018f3619-67c5-4582-a6a7-9b5020b86dfa";
+        const LIKED_SRC =
+            "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
+
         return `
-        <a href="/?${item.type}=${item.id}">
-            <div class="library-item" data-type="${item.type}" data-id="${
-            item.id
-        }">
-                <img src="${item.image_url}" alt="${
-            item.name
-        }" class="item-image" />
-                <div class="item-info">
-                    <div class="item-title">${item.name}</div>
-                    <div class="item-subtitle">
-                        ${
-                            item.type === "artist"
-                                ? "Artist"
-                                : `Playlist • ${item.user_display_name}`
-                        }
-                    </div>
+    <a href="/?${item.type}=${item.id}">
+        <div class="library-item ${
+            (item.id === playlistId || item.id === artistId) && "active"
+        }" data-type="${item.type}" data-id="${item.id}">
+            <img src="${
+                item.id === LIKED_ID ? LIKED_SRC : item.image_url
+            }" alt="${item.name}" class="item-image" />
+            <div class="item-info">
+                <div class="item-title">${item.name}</div>
+                <div class="item-subtitle">
+                    ${
+                        item.type === "artist"
+                            ? "Artist"
+                            : `Playlist • ${item.user_display_name}`
+                    }
                 </div>
             </div>
-        </a>
+        </div>
+    </a>
     `;
     }
 
     _renderCompactList(item) {
+        const params = new URLSearchParams(window.location.search);
+        const playlistId = params.get("playlist");
+        const artistId = params.get("artist");
+
+        const LIKED_ID = "018f3619-67c5-4582-a6a7-9b5020b86dfa";
+        const LIKED_SRC =
+            "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
+
         return `
-       <div class="library-item library-compact_list-item">
+       <div class="library-item library-compact_list-item ${
+           (item.id === playlistId || item.id === artistId) && "active"
+       }">
             <div class="item-title">${item.name}</div>
             <p class="library-content-separate"></p>
             <div class="item-subtitle">${
@@ -508,10 +538,20 @@ class Sidebar extends HTMLElement {
     }
 
     _renderDefaultGrid(item) {
+        const params = new URLSearchParams(window.location.search);
+        const playlistId = params.get("playlist");
+        const artistId = params.get("artist");
+
+        const LIKED_ID = "018f3619-67c5-4582-a6a7-9b5020b86dfa";
+        const LIKED_SRC =
+            "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
+
         return `
-         <div class="library-item library-default-grid-item active">
+         <div class="library-item library-default-grid-item ${
+             (item.id === playlistId || item.id === artistId) && "active"
+         }">
             <img
-                src="${item.image_url}"
+                src="${item.id === LIKED_ID ? LIKED_SRC : item.image_url}"
                 alt="${item.name}"
                 class="library-default-grid-item-image item-image"
             />
@@ -528,10 +568,20 @@ class Sidebar extends HTMLElement {
     }
 
     _renderCompactGrid(item) {
+        const params = new URLSearchParams(window.location.search);
+        const playlistId = params.get("playlist");
+        const artistId = params.get("artist");
+
+        const LIKED_ID = "018f3619-67c5-4582-a6a7-9b5020b86dfa";
+        const LIKED_SRC =
+            "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
+
         return `
-        <div class="library-item library-compact-grid-item">
+        <div class="library-item library-compact-grid-item ${
+            (item.id === playlistId || item.id === artistId) && "active"
+        }">
             <img
-                src="${item.image_url}"
+                src="${item.id === LIKED_ID ? LIKED_SRC : item.image_url}"
                 alt="${item.name}"
                 class="library-compact-grid-item-image item-image"
             />

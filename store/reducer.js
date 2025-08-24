@@ -1,6 +1,7 @@
 const init = {
     user: null,
     playlists: [],
+    trackPlaying: null,
 };
 
 export default function reducer(state = init, action, args) {
@@ -53,6 +54,20 @@ export default function reducer(state = init, action, args) {
             return {
                 ...state,
                 playlists: playlists,
+            };
+        }
+
+        // Play track
+        case "SET_TRACK": {
+            return {
+                ...state,
+                trackPlaying: { ...args[0], isPlaying: true, currentTime: 0 },
+            };
+        }
+        case "TOGGLE_TRACK": {
+            return {
+                ...state,
+                trackPlaying: { ...state.trackPlaying, ...args[0] },
             };
         }
 

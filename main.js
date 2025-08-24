@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const artistTracksHtml = tracks
             .map((track) => {
                 return `
-                    <div class="track-item">
+                    <div class="track-item" data-id="${track.id}">
                         <div class="track-number">${track.track_number}</div>
                         <div class="track-image">
                             <img
@@ -121,6 +121,16 @@ document.addEventListener("DOMContentLoaded", async function () {
         trackContainer.innerHTML = artistTracksHtml;
 
         handleFollowAritst(artistInfo);
+
+        const artistTracks = document.querySelectorAll(".track-item");
+
+        artistTracks.forEach((track) => {
+            track.onclick = async () => {
+                const id = track.dataset.id;
+                const res = await httpRequest.post(`tracks/${id}/play`);
+                dispatch("SET_TRACK", res.track);
+            };
+        });
     } else {
         handleCloseArtistDetail();
     }

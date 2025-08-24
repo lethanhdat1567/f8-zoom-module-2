@@ -3,7 +3,7 @@ class Tooltip {
         this.targetEle = document.querySelector(selector);
 
         if (!this.targetEle) {
-            console.error("Target element not found");
+            console.error("Target element not found", selector);
             return;
         }
 
