@@ -28,6 +28,9 @@
     margin-bottom: var(--spacing-xl);
 }
 
+.logo {
+    cursor: pointer;
+}
 .logo i {
     font-size: 32px;
     color: var(--text-primary);

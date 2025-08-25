@@ -14,11 +14,21 @@ class Sidebar extends HTMLElement {
         this.innerHTML = html;
         this.menuContextItem = null;
         this.contextMenu = null;
+        this.isSetUser = false;
 
+        this.viewAsValue =
+            localStorage.getItem("viewAsValue") || "default_list";
+        this.sortByValue = localStorage.getItem("sortByValue") || "recents";
+
+        // Get playlist
         this._handleGetPlaylist();
+        // Tooltip other
+        this.useTooltipContent();
     }
 
     render() {
+        this._handleGetAgainPlaylist();
+
         // Recents tooltip
         this._handleRecentTooltip();
 
@@ -36,13 +46,13 @@ class Sidebar extends HTMLElement {
 
         // Click create playlist
         this._handleCreatePlaylist();
-
-        // Tooltip other
-        this.useTooltipContent();
     }
 
     // Filter and save playlists
     async _handleGetPlaylist(searchValue) {
+        const { user } = this.props;
+        if (!user) return;
+
         try {
             const { artists } = await httpRequest.get("me/following");
             const { playlists } = await httpRequest.get("me/playlists");
@@ -56,9 +66,11 @@ class Sidebar extends HTMLElement {
 
             const playlistsData = [...myPlaylists, ...myArtists];
 
-            const sortedPlaylists = playlistsData.sort(
-                (a, b) => new Date(b.followed_at) - new Date(a.followed_at)
-            );
+            const sortedPlaylists = playlistsData.sort((a, b) => {
+                const dateA = new Date(a.followed_at || a.created_at);
+                const dateB = new Date(b.followed_at || b.created_at);
+                return dateB - dateA;
+            });
 
             let result;
             if (searchValue) {
@@ -111,8 +123,7 @@ class Sidebar extends HTMLElement {
         });
 
         const sortBtn = document.querySelector(".sort-btn");
-        this.sortByValue = "recents";
-        this.viewAsValue = "default_list";
+
         this._renderLibraryContent(this.viewAsValue);
 
         // toggle show tooltip
@@ -136,6 +147,7 @@ class Sidebar extends HTMLElement {
             this.isShown = !this.isShown;
         };
     }
+
     _renderMenuList() {
         const menuItems = [
             { name: "Recents", value: "recents" },
@@ -238,8 +250,10 @@ class Sidebar extends HTMLElement {
 
             sortItem.onclick = () => {
                 this.sortByValue = sortValue;
+                localStorage.setItem("sortByValue", sortValue);
                 this._renderSortBy();
                 this.sortInstance.hide();
+                this._filterLibraryContent();
                 this.isShown = false;
             };
         });
@@ -249,8 +263,9 @@ class Sidebar extends HTMLElement {
 
             viewItem.onclick = () => {
                 this.viewAsValue = viewValue;
+                localStorage.setItem("viewAsValue", viewValue);
                 this._renderViewAs();
-                this._renderLibraryContent(viewValue);
+                this._renderLibraryContent();
                 this.sortInstance.hide();
                 this.isShown = false;
             };
@@ -293,19 +308,59 @@ class Sidebar extends HTMLElement {
             }
         });
     }
-    _renderLibraryContent(viewAsValue) {
+    _renderLibraryContent() {
         const libraryContentEles =
             document.querySelectorAll(".library-content");
 
         libraryContentEles.forEach((item) => {
-            if (item.classList.contains(`library-${viewAsValue}`)) {
+            if (item.classList.contains(`library-${this.viewAsValue}`)) {
                 item.classList.add("active");
                 // Render playlist
-                this._handleRenderPlaylist(viewAsValue);
+                this._handleRenderPlaylist(this.viewAsValue);
             } else {
                 item.classList.remove("active");
             }
         });
+    }
+
+    _filterLibraryContent() {
+        let playlists = [...this.props.playlists];
+        switch (this.sortByValue) {
+            case "recents": {
+                playlists.sort((a, b) => {
+                    const dateA = new Date(
+                        a.followed_at || a.updated_at || a.created_at
+                    );
+                    const dateB = new Date(
+                        b.followed_at || b.updated_at || b.created_at
+                    );
+                    return dateB - dateA;
+                });
+                break;
+            }
+            case "recently_added": {
+                playlists.sort(
+                    (a, b) => new Date(b.created_at) - new Date(a.created_at)
+                );
+                break;
+            }
+            case "alphabetical": {
+                playlists.sort((a, b) => a.name.localeCompare(b.name, "vi"));
+                break;
+            }
+            case "creator": {
+                playlists.sort((a, b) => {
+                    const creatorA = a.user_display_name || "";
+                    const creatorB = b.user_display_name || "";
+                    return creatorA.localeCompare(creatorB, "vi");
+                });
+                break;
+            }
+            default:
+                break;
+        }
+
+        dispatch("SET_PLAYLIST", playlists);
     }
 
     // Search
@@ -332,7 +387,6 @@ class Sidebar extends HTMLElement {
 
         searchInput.oninput = (e) => {
             const value = e.target.value;
-            console.log(value);
 
             this._handleGetPlaylist(value);
         };
@@ -345,6 +399,7 @@ class Sidebar extends HTMLElement {
         navtabs.forEach((nav) => {
             nav.onclick = async () => {
                 await this._handleGetPlaylist();
+
                 if (nav.className.includes("active")) {
                     nav.classList.remove("active");
                 } else {
@@ -398,34 +453,19 @@ class Sidebar extends HTMLElement {
 
         const deleteIconItem = document.createElement("i");
         deleteIconItem.className = "fa-solid fa-x";
-        deleteIconItem.style.color = "green";
+        deleteIconItem.style.color = "red";
 
         const deleteTextItem = document.createElement("span");
 
         const type = this.menuContextItem?.dataset?.type;
-        deleteTextItem.innerText = `Unfollow this ${
-            type === "artist" ? "artist" : "playlist"
-        }`;
+        deleteTextItem.innerText =
+            type === "artist" ? "Unfollow this artist" : "Remove this playlist";
 
         deleteTextItem.className = "library-menu-item-text";
 
         deleteItem.append(deleteIconItem, deleteTextItem);
 
-        // Ban Item
-        const banItem = document.createElement("li");
-        banItem.className = "library-menu-item";
-
-        const banIconItem = document.createElement("i");
-        banIconItem.className = "fa-solid fa-ban";
-        banIconItem.style.color = "rgb(159 155 155)";
-
-        const banTextItem = document.createElement("span");
-        banTextItem.innerText = "Don't play this artist";
-        banTextItem.className = "library-menu-item-text";
-
-        banItem.append(banIconItem, banTextItem);
-
-        contextMenuWrapper.append(deleteItem, banItem);
+        contextMenuWrapper.append(deleteItem);
 
         deleteItem.onclick = async () => {
             const { id, type } = this.menuContextItem.dataset;
@@ -460,8 +500,22 @@ class Sidebar extends HTMLElement {
         };
     }
 
+    async _handleGetAgainPlaylist() {
+        if (this.props.user) {
+            if (this.isSetUser) return;
+            await this._handleGetPlaylist();
+            this.isSetUser = true;
+        } else {
+            this.isSetUser = false;
+        }
+    }
+
     useTooltipContent() {
         // Tooltip
+        new Tooltip(".logo", {
+            content: "Spotify",
+            position: "bottom-left",
+        });
         new Tooltip("#library-create-btn", {
             content: "Create a playlist, folder, or Jam",
             position: "top",
@@ -491,25 +545,32 @@ class Sidebar extends HTMLElement {
             "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
 
         return `
-    <a href="/?${item.type}=${item.id}">
-        <div class="library-item ${
-            (item.id === playlistId || item.id === artistId) && "active"
-        }" data-type="${item.type}" data-id="${item.id}">
-            <img src="${
-                item.id === LIKED_ID ? LIKED_SRC : item.image_url
-            }" alt="${item.name}" class="item-image" />
-            <div class="item-info">
-                <div class="item-title">${item.name}</div>
-                <div class="item-subtitle">
-                    ${
-                        item.type === "artist"
-                            ? "Artist"
-                            : `Playlist • ${item.user_display_name}`
-                    }
+            <a href="/?${item.type}=${item.id}">
+                <div class="library-item ${
+                    (item.id === playlistId || item.id === artistId) && "active"
+                }" data-type="${item.type}" data-id="${item.id}">
+                  <img 
+                        src="${
+                            item.id === LIKED_ID
+                                ? LIKED_SRC
+                                : item.image_url ||
+                                  "https://placehold.co/200x200?text=No+Image"
+                        }" 
+                        alt="${item.name}" 
+                        class="item-image" 
+                        />
+                    <div class="item-info">
+                        <div class="item-title">${item.name}</div>
+                        <div class="item-subtitle">
+                            ${
+                                item.type === "artist"
+                                    ? "Artist"
+                                    : `Playlist • ${item.user_display_name}`
+                            }
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </a>
+            </a>
     `;
     }
 
@@ -523,6 +584,7 @@ class Sidebar extends HTMLElement {
             "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
 
         return `
+        <a href="/?${item.type}=${item.id}">
        <div class="library-item library-compact_list-item ${
            (item.id === playlistId || item.id === artistId) && "active"
        }">
@@ -534,6 +596,7 @@ class Sidebar extends HTMLElement {
                     : `Playlist • ${item.user_display_name}`
             }</div>
         </div>
+        </a>
     `;
     }
 
@@ -547,6 +610,7 @@ class Sidebar extends HTMLElement {
             "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
 
         return `
+        <a href="/?${item.type}=${item.id}">
          <div class="library-item library-default-grid-item ${
              (item.id === playlistId || item.id === artistId) && "active"
          }">
@@ -564,6 +628,7 @@ class Sidebar extends HTMLElement {
                 }</div>
             </div>
         </div>
+        </a>
     `;
     }
 
@@ -577,6 +642,7 @@ class Sidebar extends HTMLElement {
             "https://misc.scdn.co/liked-songs/liked-songs-300.jpg";
 
         return `
+        <a href="/?${item.type}=${item.id}">
         <div class="library-item library-compact-grid-item ${
             (item.id === playlistId || item.id === artistId) && "active"
         }">
@@ -586,6 +652,7 @@ class Sidebar extends HTMLElement {
                 class="library-compact-grid-item-image item-image"
             />
         </div>
+        </a>
     `;
     }
 }

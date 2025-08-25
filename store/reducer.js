@@ -11,7 +11,7 @@ export default function reducer(state = init, action, args) {
             return { ...state, user: args[0] };
 
         case "LOGOUT":
-            return { ...state, user: null };
+            return { ...state, user: null, playlists: [] };
 
         // Playlist
         case "SET_PLAYLIST":

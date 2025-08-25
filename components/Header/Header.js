@@ -20,6 +20,7 @@ class Header extends HTMLElement {
         this.authSection = document.querySelector(".auth-buttons");
         this.userMenu = document.querySelector(".user-menu");
         const accessToken = localStorage.getItem("accessToken");
+
         if (accessToken) {
             this.userMenu.style.display = "flex";
             this.authSection.style.display = "none";
@@ -31,6 +32,7 @@ class Header extends HTMLElement {
         }
 
         this.render();
+        this._handleTooltip();
     }
 
     async render() {
@@ -48,12 +50,6 @@ class Header extends HTMLElement {
             this.userMenu.style.display = "none";
             this.authSection.style.display = "flex";
         }
-
-        // Tooltip
-        new Tooltip(".home-btn", {
-            content: "Home",
-            position: "bottom",
-        });
     }
 
     _handleShowModal() {
@@ -124,6 +120,17 @@ class Header extends HTMLElement {
         home.onclick = () => {
             document.dispatchEvent(new CustomEvent("back-to-home"));
         };
+    }
+    _handleTooltip() {
+        // Tooltip
+        new Tooltip(".home-btn", {
+            content: "Home",
+            position: "bottom",
+        });
+        new Tooltip("#userAvatar", {
+            content: this.props.user?.display_name || "",
+            position: "bottom",
+        });
     }
 }
 

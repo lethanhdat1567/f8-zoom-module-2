@@ -165,16 +165,22 @@ document.addEventListener("DOMContentLoaded", async function () {
 
                     followBtn.textContent = "Follow";
                     isFollowed = !isFollowed;
+
+                    dispatch("REMOVE-PLAYLIST-ITEM", artistId);
                     toast({
                         title: `Đã hủy lưu playlist của bạn`,
                         type: "success",
                     });
                 } else {
                     await httpRequest.post(`artists/${artistId}/follow`);
+                    const newArtist = await httpRequest.get(
+                        `artists/${artistId}`
+                    );
 
                     followBtn.textContent = "Following";
                     isFollowed = !isFollowed;
 
+                    dispatch("ADD_PLAYLIST", { ...newArtist, type: "artist" });
                     toast({
                         title: `Đã lưu vào playlist của bạn`,
                         type: "success",
@@ -394,6 +400,5 @@ function handleBackToHome(section) {
         playlistWrapper.hidden = true;
     }
 
-    const newUrl = window.location.pathname;
-    window.history.replaceState({}, "", newUrl);
+    window.location.href = window.location.pathname;
 }

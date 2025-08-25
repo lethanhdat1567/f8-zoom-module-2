@@ -45,12 +45,14 @@ class CreatePlaylist extends HTMLElement {
                   <div class="playlist-header_thumbnail">
                         <img 
                             class="playlist-header-image"
-                            src="${
+                            ${
                                 playlistDetail.id ===
                                 "018f3619-67c5-4582-a6a7-9b5020b86dfa"
-                                    ? "https://misc.scdn.co/liked-songs/liked-songs-300.jpg"
-                                    : playlistDetail.image_url || ""
-                            }"
+                                    ? `src="https://misc.scdn.co/liked-songs/liked-songs-300.jpg"`
+                                    : playlistDetail.image_url
+                                    ? `src="${playlistDetail.image_url}"`
+                                    : ""
+                            }
                             />
                         <span class="playlist-header-thumbnail-icon"
                             ><i class="fa-solid fa-music"></i>

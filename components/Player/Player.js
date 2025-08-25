@@ -13,14 +13,18 @@ class Player extends HTMLElement {
         const html = await res.text();
 
         this.innerHTML = html;
-        this.audioTooltip = null;
-        this.likeTooltip = null;
         this.audio = null;
         this.muted = false;
+
+        this.audioTooltip = null;
+        this.likeTooltip = null;
+        this.repeatTooltip = null;
+        this.suffleTooltip = null;
 
         this.render();
         this._handleTooltip();
         this._handleRepeat();
+        this._handleSuffle();
     }
 
     render() {
@@ -182,7 +186,7 @@ class Player extends HTMLElement {
     }
 
     _handleTooltip() {
-        new Tooltip(".control-btn__suffle", {
+        this.suffleTooltip = new Tooltip(".control-btn__suffle", {
             content: "Enable suffle",
             position: "top",
         });
@@ -202,7 +206,7 @@ class Player extends HTMLElement {
             position: "top",
         });
 
-        new Tooltip(".control-btn__repeat", {
+        this.repeatTooltip = new Tooltip(".control-btn__repeat", {
             content: "Enable repeat",
             position: "top",
         });
@@ -230,7 +234,24 @@ class Player extends HTMLElement {
             isRepeat = !isRepeat;
             this.audio.loop = isRepeat;
 
+            this.repeatTooltip.options.content = isRepeat
+                ? "Unable repeat"
+                : "Enable repeat";
+            this.repeatTooltip.rerender();
             repeatBtn.classList.toggle("active", isRepeat);
+        };
+    }
+    _handleSuffle() {
+        let isSuffle = false;
+        const suffleBtn = document.querySelector(".control-btn__suffle");
+        suffleBtn.onclick = () => {
+            isSuffle = !isSuffle;
+
+            this.suffleTooltip.options.content = isSuffle
+                ? "Unable suffle"
+                : "Enable suffle";
+            this.suffleTooltip.rerender();
+            suffleBtn.classList.toggle("active", isSuffle);
         };
     }
 
